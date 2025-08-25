@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const getConnection = require("../db");
 const oracledb = require("oracledb");
-const bcrypt = require("bcrypt");
+const bcrypt = require("bcryptjs");
+
 
 const SALT_ROUNDS = 10;
 
