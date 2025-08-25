@@ -135,7 +135,7 @@ router.get("/perfil/:id_perfiles", async (req, res) => {
 });
 
 /**
- * (Opcional) GET /api/habilidades/tipo/:id_tipo_habilidad
+ * GET /api/habilidades/tipo/:id_tipo_habilidad
  * Lista habilidades por tipo de habilidad
  */
 router.get("/tipo/:id_tipo_habilidad", async (req, res) => {
@@ -250,6 +250,35 @@ router.delete("/:id", async (req, res) => {
   } finally {
     try { if (conn) await conn.close(); } catch {}
   }
+
+  // GET /api/habilidades/detalle
+router.get("/detalle", async (_req, res) => {
+  let conn;
+  try {
+    conn = await getConnection();
+    const result = await conn.execute(
+      `SELECT  h.ID,
+               h.NOM_HABILIDADES,
+               h.NIVEL,
+               h.ID_PERFILES,
+               p.NOMBRE  AS PERFIL_NOMBRE,
+               p.EMAIL   AS PERFIL_EMAIL,
+               h.ID_TIPO_HABILIDAD,
+               t.NOMBRE  AS TIPO_NOMBRE
+         FROM HABILIDADES h
+         JOIN PERFILES p ON p.ID = h.ID_PERFILES
+         JOIN TIPO_HABILIDAD t ON t.ID = h.ID_TIPO_HABILIDAD
+        ORDER BY h.ID`
+    );
+    return res.json(result.rows);
+  } catch (err) {
+    console.error("GET /habilidades/detalle error:", err);
+    return res.status(500).json({ error: "Fallo al listar detalle" });
+  } finally {
+    try { if (conn) await conn.close(); } catch {}
+  }
+});
+
 });
 
 module.exports = router;
