@@ -1,59 +1,57 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./etiqueta2.css";
 
 function Etiqueta2() {
   const navigate = useNavigate();
 
-  // Lista de etiquetas
   const etiquetas = [
-    "DEPORTES", "CIENCIAS", "FITNESS", "Filosofía", "IDIOMAS", 
-    "COMPUTACION", "MUSICA", "Programación", "ARTES", "Escritura",
-    "Historia", "Química", "Robótica", "moda", "Finanzas", 
-    "Cocina", "Filosofía", "Literatura", "Matemáticas"
+    "DEPORTES", "CIENCIAS", "FITNESS", "ARTES", "MUSICA",
+    "IDIOMAS", "FILOSOFÍA", "COMPUTACION", "PROGRAMACIÓN", "ESCRITURA",
+    "COCINA", "FINANZAS", "MODA", "ROBÓTICA", "QUÍMICA",
+    "HISTORIA", "MATEMÁTICAS", "LITERATURA"
   ];
 
-  // Estado para las etiquetas seleccionadas
   const [seleccionadas, setSeleccionadas] = useState([]);
 
-  // Función para seleccionar/deseleccionar
-  const toggleEtiqueta = (etiqueta) => {
-    if (seleccionadas.includes(etiqueta)) {
-      setSeleccionadas(seleccionadas.filter((e) => e !== etiqueta));
-    } else {
-      setSeleccionadas([...seleccionadas, etiqueta]);
-    }
+  const toggleEtiqueta = (et) => {
+    setSeleccionadas(prev =>
+      prev.includes(et) ? prev.filter(x => x !== et) : [...prev, et]
+    );
+  };
+
+  const goNext = () => {
+    console.log("Intereses seleccionados:", seleccionadas);
+    navigate("/Foto"); // 👈 respeta el casing de tu Router
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>QUE CONOCIMIENTO TE INTERESA?</h2>
-      MARCA LOS TEMAS QUE TE INTERESAN(PUEDES MARCAR MAS DE UNA)
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
-        {etiquetas.map((etiqueta) => (
-          <button
-            key={etiqueta}
-            onClick={() => toggleEtiqueta(etiqueta)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 20,
-              border: seleccionadas.includes(etiqueta) ? "2px solid #007bff" : "1px solid #ccc",
-              backgroundColor: seleccionadas.includes(etiqueta) ? "#cce5ff" : "#f8f9fa",
-              cursor: "pointer",
-            }}
-          >
-            {etiqueta}
-          </button>
-        ))}
-      </div>
+    <div className="e2-page">
+      <header className="e2-header">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">‹</button>
+        <h1 className="e2-title">QUE CONOCIMIENTO<br />TE INTERESA?</h1>
+      </header>
 
-      <button
-        onClick={() => {
-          console.log("Etiquetas seleccionadas:", seleccionadas);
-          navigate("/foto");
-        }}
-      >
-        Siguiente
-      </button>
+      <main className="e2-main">
+        <p className="e2-sub">
+          MARCA LOS TEMAS QUE TE INTERESAN (PUEDES MARCAR MÁS DE UNA)
+        </p>
+
+        <div className="chips-grid">
+          {etiquetas.map((et) => (
+            <button
+              key={et}
+              type="button"
+              onClick={() => toggleEtiqueta(et)}
+              className={["chip", seleccionadas.includes(et) ? "selected" : ""].join(" ").trim()}
+            >
+              {et}
+            </button>
+          ))}
+        </div>
+
+        <button className="btn-pill danger" onClick={goNext}>SIGUIENTE</button>
+      </main>
     </div>
   );
 }

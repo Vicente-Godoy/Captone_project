@@ -1,59 +1,70 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import "./etiqueta1.css";
 
 function Etiqueta1() {
   const navigate = useNavigate();
 
-  // Lista de etiquetas
   const etiquetas = [
-    "DEPORTES", "CIENCIAS", "FITNESS", "Filosofía", "IDIOMAS", 
-    "COMPUTACION", "MUSICA", "Programación", "ARTES", "Escritura",
-    "Historia", "Química", "Robótica", "moda", "Finanzas", 
-    "Cocina", "Filosofía", "Literatura", "Matemáticas"
+    "DEPORTES", "CIENCIAS", "FITNESS", "ARTES", "MUSICA",
+    "IDIOMAS", "FILOSOFÍA", "COMPUTACION", "PROGRAMACIÓN", "ESCRITURA",
+    "COCINA", "FINANZAS", "MODA", "ROBÓTICA", "QUÍMICA",
+    "HISTORIA", "MATEMÁTICAS", "LITERATURA", "+"
   ];
 
-  // Estado para las etiquetas seleccionadas
   const [seleccionadas, setSeleccionadas] = useState([]);
 
-  // Función para seleccionar/deseleccionar
   const toggleEtiqueta = (etiqueta) => {
-    if (seleccionadas.includes(etiqueta)) {
-      setSeleccionadas(seleccionadas.filter((e) => e !== etiqueta));
-    } else {
-      setSeleccionadas([...seleccionadas, etiqueta]);
+    if (etiqueta === "+") {
+      // aquí podrías abrir un modal para agregar una nueva etiqueta
+      return;
     }
+    setSeleccionadas((prev) =>
+      prev.includes(etiqueta)
+        ? prev.filter((e) => e !== etiqueta)
+        : [...prev, etiqueta]
+    );
+  };
+
+  const goNext = () => {
+    console.log("Etiquetas seleccionadas:", seleccionadas);
+    navigate("/Etiqueta2"); // 👈 respeta el casing del Router
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>DEFINE TU CONOCIMIENTO</h2>
-      DEFINE TU CONOCIMIENTO ENTRE LAS SIGUIENTES ETIQUETAS
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 20 }}>
-        {etiquetas.map((etiqueta) => (
-          <button
-            key={etiqueta}
-            onClick={() => toggleEtiqueta(etiqueta)}
-            style={{
-              padding: "8px 12px",
-              borderRadius: 20,
-              border: seleccionadas.includes(etiqueta) ? "2px solid #007bff" : "1px solid #ccc",
-              backgroundColor: seleccionadas.includes(etiqueta) ? "#cce5ff" : "#f8f9fa",
-              cursor: "pointer",
-            }}
-          >
-            {etiqueta}
-          </button>
-        ))}
-      </div>
+    <div className="e1-page">
+      {/* Header rojo con flecha y título */}
+      <header className="e1-header">
+        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">‹</button>
+        <h1 className="e1-title">DEFINE TU<br />CONOCIMIENTO</h1>
+      </header>
 
-      <button
-        onClick={() => {
-          console.log("Etiquetas seleccionadas:", seleccionadas);
-          navigate("/etiqueta2");
-        }}
-      >
-        Siguiente
-      </button>
+      <main className="e1-main">
+        <p className="e1-sub">DEFINE TU CONOCIMIENTO ENTRE LAS SIGUIENTES ETIQUETAS</p>
+
+        <div className="chips-grid">
+          {etiquetas.map((et) => {
+            const selected = seleccionadas.includes(et);
+            const isPlus = et === "+";
+            return (
+              <button
+                key={et}
+                type="button"
+                onClick={() => toggleEtiqueta(et)}
+                className={[
+                  "chip",
+                  selected ? "selected" : "",
+                  isPlus ? "plus" : ""
+                ].join(" ").trim()}
+              >
+                {et}
+              </button>
+            );
+          })}
+        </div>
+
+        <button className="btn-pill danger" onClick={goNext}>SIGUIENTE</button>
+      </main>
     </div>
   );
 }
