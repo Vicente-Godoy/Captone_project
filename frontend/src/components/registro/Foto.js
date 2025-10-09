@@ -1,78 +1,44 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./foto.css";
 
 function Foto() {
   const navigate = useNavigate();
-  const inputRef = useRef(null);
   const [imagen, setImagen] = useState(null);
-  const [isDragOver, setIsDragOver] = useState(false);
 
-  const openPicker = () => inputRef.current?.click();
-
-  const handleFile = (file) => {
-    if (!file) return;
-    const url = URL.createObjectURL(file);
-    setImagen(url);
-  };
-
-  const onChange = (e) => handleFile(e.target.files?.[0]);
-
-  const onDrop = (e) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const file = e.dataTransfer.files?.[0];
-    handleFile(file);
+  // Maneja la selección de imagen
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImagen(URL.createObjectURL(file));
+    }
   };
 
   return (
-    <div className="foto-page">
-      {/* Header rojo con flecha y título */}
-      <header className="foto-header">
-        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">‹</button>
-        <h1 className="foto-title">FOTO DE PERFIL</h1>
-      </header>
+    <div style={{ padding: 20 }}>
+      <h2>Sube tu foto</h2>
 
-      <main className="foto-main">
-        <p className="foto-sub">ESCOGE UNA FOTO DE TU GALERÍA</p>
+      {/* Selector de archivo */}
+      <input type="file" accept="image/*" onChange={handleFileChange} />
 
-        {/* Dropzone */}
-        <div
-          className={`dropzone ${isDragOver ? "over" : ""}`}
-          onClick={openPicker}
-          onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
-          onDragLeave={() => setIsDragOver(false)}
-          onDrop={onDrop}
-        >
-          {/* Input oculto */}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            onChange={onChange}
-            hidden
-          />
-
-          {/* Contenido: plus o preview */}
-          {!imagen ? (
-            <div className="plus">
-              <span>+</span>
-            </div>
-          ) : (
-            <img className="preview" src={imagen} alt="Vista previa" />
-          )}
+      {/* Vista previa de la imagen */}
+      {imagen && (
+        <div style={{ marginTop: 20 }}>
+          <p>Vista previa:</p>
+          <img src={imagen} alt="Vista previa" style={{ maxWidth: "100%", height: "auto" }} />
         </div>
+      )}
 
-        <button
-          className="btn-pill danger"
-          onClick={() => {
-            console.log("Imagen seleccionada:", imagen);
-            navigate("/"); // vuelve al login
-          }}
-        >
-          TERMINAR
-        </button>
-      </main>
+      {/* Botón Finalizar que lleva al Login */}
+      <button
+        style={{ marginTop: 20 }}
+        onClick={() => {
+          console.log("Imagen seleccionada:", imagen);
+          // Aquí puedes guardar la imagen o cualquier dato final
+          navigate("/"); // Redirige al login
+        }}
+      >
+        Finalizar
+      </button>
     </div>
   );
 }
