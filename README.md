@@ -43,13 +43,13 @@ npm start
 - **react**: librería base
 - **react-dom**: renderizado en navegador
 - **react-scripts**: scripts CRA (start, build, test)
-- El frontend usa fetch (nativo de JS), no fue necesario instalar Axios.
+- El frontend usa fetch (nativo de JS), no es necesario instalar Axios.
 
 ## Endpoints Clave
 - **Perfiles**: `/api/perfiles` → CRUD (contraseñas hasheadas en backend)
 - **Tipos**: `/api/tipo-habilidad` → catálogo de categorías
 - **Habilidades**:
-  - `GET /api/habilidades` → lista cruda (IDs)
+  - `GET /api/habilidades` → lista crud (IDs)
   - `GET /api/habilidades/detalle` → lista con nombres de perfil y tipo
   - `POST /api/habilidades` → crear nueva habilidad
 
