@@ -1,0 +1,13 @@
+.home {
+    background: #f8f8f8;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+.home__title {
+    text-align: center;
+    color: #333;
+    margin-bottom: 16px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+}
