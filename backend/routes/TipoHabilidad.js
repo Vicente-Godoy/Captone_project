@@ -1,118 +1,134 @@
 const express = require("express");
 const router = express.Router();
-const oracledb = require("oracledb");
-const getConnection = require("../db");
+// Importamos la instancia de la base de datos de Firestore
+const { db } = require("../config/firebase");
 
-// LISTAR tipos (solo activos por defecto)
+// --- Mapeador de datos ---
+// Helper para asegurar que los datos de Firestore incluyan el ID del documento.
+const mapDocWithId = (doc) => ({
+  id: doc.id,
+  ID: doc.id,
+  ...doc.data()
+});
+
+
+/**
+ * GET /api/tipo-habilidad
+ * Lista todos los tipos de habilidad.
+ * Firestore no tiene un 'activo=S' por defecto, lo simularemos con una query.
+ */
 router.get("/", async (req, res) => {
-  let conn;
   try {
     const incluirInactivos = req.query.incluirInactivos === "true";
-    conn = await getConnection();
-    const sql = incluirInactivos
-      ? `SELECT * FROM TIPO_HABILIDAD ORDER BY NOMBRE`
-      : `SELECT * FROM TIPO_HABILIDAD WHERE ACTIVO='S' ORDER BY NOMBRE`;
-    const result = await conn.execute(sql);
-    return res.json(result.rows);
+    let query = db.collection("tipos_habilidad");
+
+    // Si no se pide incluir inactivos, filtramos por el campo 'activo'.
+    if (!incluirInactivos) {
+      query = query.where("activo", "==", true);
+    }
+    
+    const snapshot = await query.orderBy("nombre").get();
+
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+    // Mapeamos los resultados para incluir el ID autogenerado por Firestore.
+    const tipos = snapshot.docs.map(mapDocWithId);
+    return res.json(tipos);
   } catch (err) {
     console.error("GET /tipo-habilidad error:", err);
     return res.status(500).json({ error: "Fallo al listar tipos" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// CREAR tipo
+/**
+ * POST /api/tipo-habilidad
+ * Crea un nuevo tipo de habilidad.
+ */
 router.post("/", async (req, res) => {
-  let conn;
   try {
-    const { nombre, descripcion, activo } = req.body || {};
-    if (!nombre) return res.status(400).json({ error: "nombre es obligatorio" });
+    const { nombre, descripcion } = req.body || {};
+    // El campo 'activo' lo manejamos como booleano en Firestore.
+    const activo = req.body.activo !== false; // Por defecto es true
 
-    conn = await getConnection();
-    const result = await conn.execute(
-      `INSERT INTO TIPO_HABILIDAD (NOMBRE, DESCRIPCION, ACTIVO)
-       VALUES (:nombre, :descripcion, :activo)
-       RETURNING ID INTO :out_id`,
-      {
-        nombre,
-        descripcion: descripcion ?? null,
-        activo: activo === "N" ? "N" : "S",
-        out_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-      },
-      { autoCommit: true }
-    );
-    return res.status(201).json({ message: "Tipo creado", id: result.outBinds.out_id[0] });
+    if (!nombre || !nombre.trim()) {
+      return res.status(400).json({ error: "El campo 'nombre' es obligatorio" });
+    }
+
+    const newTipo = {
+      nombre: nombre.trim(),
+      descripcion: descripcion || null,
+      activo: activo,
+      // En Firestore, es común añadir timestamps de creación/actualización.
+      fechaCreacion: new Date(),
+    };
+
+    const docRef = await db.collection("tipos_habilidad").add(newTipo);
+    return res.status(201).json({ message: "Tipo creado", id: docRef.id });
   } catch (err) {
     console.error("POST /tipo-habilidad error:", err);
-    if (err.errorNum === 1) return res.status(400).json({ error: "Nombre ya existe" });
     return res.status(500).json({ error: "Fallo al crear tipo" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// ACTUALIZAR tipo
+/**
+ * PUT /api/tipo-habilidad/:id
+ * Actualiza un tipo de habilidad.
+ */
 router.put("/:id", async (req, res) => {
-  let conn;
   try {
     const { id } = req.params;
-    const { nombre, descripcion, activo } = req.body || {};
-    if (!nombre) return res.status(400).json({ error: "nombre es obligatorio" });
+    const { nombre, descripcion } = req.body || {};
+    const activo = req.body.activo !== false;
 
-    conn = await getConnection();
-    const result = await conn.execute(
-      `UPDATE TIPO_HABILIDAD
-         SET NOMBRE = :nombre,
-             DESCRIPCION = :descripcion,
-             ACTIVO = :activo
-       WHERE ID = :id`,
-      {
-        nombre,
-        descripcion: descripcion ?? null,
-        activo: activo === "N" ? "N" : "S",
-        id
-      },
-      { autoCommit: true }
-    );
-    if (result.rowsAffected === 0) return res.status(404).json({ error: "Tipo no encontrado" });
+    if (!nombre || !nombre.trim()) {
+      return res.status(400).json({ error: "El campo 'nombre' es obligatorio" });
+    }
+
+    const docRef = db.collection("tipos_habilidad").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Tipo no encontrado" });
+    }
+
+    await docRef.update({
+      nombre: nombre.trim(),
+      descripcion: descripcion || null,
+      activo: activo,
+    });
+
     return res.json({ message: "Tipo actualizado" });
   } catch (err) {
     console.error("PUT /tipo-habilidad/:id error:", err);
     return res.status(500).json({ error: "Fallo al actualizar tipo" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// (Opcional) ELIMINAR tipo — ojo si hay habilidades que lo usan
+/**
+ * DELETE /api/tipo-habilidad/:id
+ * Elimina un tipo de habilidad.
+ * La validación de FK se debe hacer manualmente.
+ */
 router.delete("/:id", async (req, res) => {
-  let conn;
   try {
     const { id } = req.params;
-    conn = await getConnection();
 
-    // Verifica uso
-    const uso = await conn.execute(
-      `SELECT 1 FROM HABILIDADES WHERE ID_TIPO_HABILIDAD = :id FETCH FIRST 1 ROWS ONLY`,
-      { id }
-    );
-    if (uso.rows.length > 0) {
-      return res.status(409).json({ error: "No se puede eliminar: hay habilidades usando este tipo" });
+    // TODO: En el futuro, validar que ninguna habilidad use este tipo.
+    // Por ahora, lo eliminamos directamente.
+
+    const docRef = db.collection("tipos_habilidad").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Tipo no encontrado" });
     }
 
-    const result = await conn.execute(
-      `DELETE FROM TIPO_HABILIDAD WHERE ID = :id`,
-      { id },
-      { autoCommit: true }
-    );
-    if (result.rowsAffected === 0) return res.status(404).json({ error: "Tipo no encontrado" });
-    return res.json({ message: "Tipo eliminado" });
+    await docRef.delete();
+    return res.json({ message: "Tipo eliminado correctamente" });
   } catch (err) {
     console.error("DELETE /tipo-habilidad/:id error:", err);
     return res.status(500).json({ error: "Fallo al eliminar tipo" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 

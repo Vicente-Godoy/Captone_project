@@ -1,284 +1,170 @@
 const express = require("express");
 const router = express.Router();
-const oracledb = require("oracledb");
-const getConnection = require("../db");
+const { db } = require("../config/firebase");
 
-/**
- * Helpers
- */
-function normBody(body = {}) {
-  return {
-    id_perfiles: body.id_perfiles ?? body.ID_PERFILES,
-    id_tipo_habilidad: body.id_tipo_habilidad ?? body.ID_TIPO_HABILIDAD,
-    nom_habilidades: body.nom_habilidades ?? body.NOM_HABILIDADES,
-    nivel: body.nivel ?? body.NIVEL ?? null
-  };
-}
+const mapDocWithId = (doc) => ({ id: doc.id, ID: doc.id, ...doc.data() });
 
 /**
  * POST /api/habilidades
- * Crea una habilidad asociada a un perfil y a un tipo de habilidad.
- * Body esperado: { id_perfiles, id_tipo_habilidad, nom_habilidades, nivel? }
+ * Crea una habilidad, validando la existencia del perfil y tipo asociados.
  */
 router.post("/", async (req, res) => {
-  let conn;
   try {
-    const { id_perfiles, id_tipo_habilidad, nom_habilidades, nivel } = normBody(req.body);
+    const { id_perfiles, id_tipo_habilidad, nom_habilidades, nivel } = req.body;
 
-    // Validaciones mínimas
     if (!id_perfiles || !id_tipo_habilidad || !nom_habilidades) {
-      return res
-        .status(400)
-        .json({ error: "id_perfiles, id_tipo_habilidad y nom_habilidades son obligatorios" });
+      return res.status(400).json({ error: "id_perfiles, id_tipo_habilidad y nom_habilidades son obligatorios" });
     }
 
-    conn = await getConnection();
-
-    // Validar que exista el perfil
-    const chkPerfil = await conn.execute(
-      `SELECT 1 FROM PERFILES WHERE ID = :id`,
-      { id: id_perfiles }
-    );
-    if (chkPerfil.rows.length === 0) {
-      return res.status(400).json({ error: "El ID_PERFILES no existe" });
+    // Simula FK: Validar que el perfil exista
+    const perfilDoc = await db.collection("perfiles").doc(id_perfiles).get();
+    if (!perfilDoc.exists) {
+      return res.status(404).json({ error: "El perfil con el ID proporcionado no existe" });
     }
 
-    // Validar que exista el tipo (y que esté ACTIVO='S' si quieres restringir)
-    const chkTipo = await conn.execute(
-      `SELECT 1 FROM TIPO_HABILIDAD WHERE ID = :id AND ACTIVO = 'S'`,
-      { id: id_tipo_habilidad }
-    );
-    if (chkTipo.rows.length === 0) {
-      return res.status(400).json({ error: "ID_TIPO_HABILIDAD no existe o está inactivo" });
+    // Simula FK: Validar que el tipo de habilidad exista
+    const tipoDoc = await db.collection("tipos_habilidad").doc(id_tipo_habilidad).get();
+    if (!tipoDoc.exists) {
+      return res.status(404).json({ error: "El tipo de habilidad con el ID proporcionado no existe" });
     }
 
-    // Insert con RETURNING
-    const result = await conn.execute(
-      `INSERT INTO HABILIDADES (ID_PERFILES, ID_TIPO_HABILIDAD, NOM_HABILIDADES, NIVEL)
-       VALUES (:id_perfiles, :id_tipo_habilidad, :nom_habilidades, :nivel)
-       RETURNING ID INTO :out_id`,
-      {
-        id_perfiles,
-        id_tipo_habilidad,
-        nom_habilidades,
-        nivel,
-        out_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-      },
-      { autoCommit: true }
-    );
+    const newHabilidad = {
+      id_perfiles,
+      id_tipo_habilidad,
+      nom_habilidades,
+      nivel: nivel || null,
+      fechaCreacion: new Date(),
+    };
 
-    return res.status(201).json({
-      message: "Habilidad creada correctamente",
-      id: result.outBinds.out_id[0],
-      data: { id_perfiles, id_tipo_habilidad, nom_habilidades, nivel }
-    });
+    const docRef = await db.collection("habilidades").add(newHabilidad);
+    res.status(201).json({ message: "Habilidad creada", id: docRef.id });
+
   } catch (err) {
     console.error("POST /habilidades error:", err);
-    if (err.errorNum === 2291) {
-      // violación de FK
-      return res.status(400).json({ error: "FK inválida (perfil o tipo no existen)" });
-    }
-    if (err.errorNum === 1400) {
-      return res.status(400).json({ error: "Campo obligatorio en NULL" });
-    }
-    return res.status(500).json({ error: "Fallo al crear habilidad" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
+    return res.status(500).json({ error: "Fallo al crear habilidad", detalle: err.message });
   }
 });
 
 /**
- * GET /api/habilidades
- * Lista todas las habilidades
+ * GET /api/habilidades/detalle
+ * Simula un JOIN para obtener habilidades con detalles de perfil y tipo.
  */
-router.get("/", async (_req, res) => {
-  let conn;
-  try {
-    conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT ID, ID_PERFILES, ID_TIPO_HABILIDAD, NOM_HABILIDADES, NIVEL
-         FROM HABILIDADES
-        ORDER BY ID`
-    );
-    return res.json(result.rows);
-  } catch (err) {
-    console.error("GET /habilidades error:", err);
-    return res.status(500).json({ error: "Fallo al listar habilidades" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
-  }
+router.get("/detalle", async (_req, res) => {
+    try {
+        const snapshot = await db.collection("habilidades").orderBy("fechaCreacion", "desc").get();
+        if (snapshot.empty) {
+            return res.json([]);
+        }
+
+        const promesasDetalle = snapshot.docs.map(async (doc) => {
+            const habilidad = mapDocWithId(doc);
+
+            // Obtener perfil (asumiendo que siempre existe por la validación del POST)
+            const perfilSnap = await db.collection("perfiles").doc(habilidad.id_perfiles).get();
+            const perfilData = perfilSnap.exists ? perfilSnap.data() : {};
+
+            // Obtener tipo habilidad
+            const tipoSnap = await db.collection("tipos_habilidad").doc(habilidad.id_tipo_habilidad).get();
+            const tipoData = tipoSnap.exists ? tipoSnap.data() : {};
+
+            return {
+                ID: habilidad.id,
+                NOM_HABILIDADES: habilidad.nom_habilidades,
+                NIVEL: habilidad.nivel,
+                ID_PERFILES: habilidad.id_perfiles,
+                PERFIL_NOMBRE: perfilData.nombre || "N/A",
+                PERFIL_EMAIL: perfilData.email || "N/A",
+                ID_TIPO_HABILIDAD: habilidad.id_tipo_habilidad,
+                TIPO_NOMBRE: tipoData.nombre || "N/A",
+            };
+        });
+
+        const habilidadesConDetalle = await Promise.all(promesasDetalle);
+        return res.json(habilidadesConDetalle);
+
+    } catch (err) {
+        console.error("GET /habilidades/detalle error:", err);
+        return res.status(500).json({ error: "Fallo al listar detalle de habilidades", detalle: err.message });
+    }
 });
+
 
 /**
  * GET /api/habilidades/perfil/:id_perfiles
- * Lista habilidades por perfil
+ * Lista habilidades por un perfil específico.
  */
 router.get("/perfil/:id_perfiles", async (req, res) => {
-  let conn;
   try {
     const { id_perfiles } = req.params;
-    conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT ID, ID_PERFILES, ID_TIPO_HABILIDAD, NOM_HABILIDADES, NIVEL
-         FROM HABILIDADES
-        WHERE ID_PERFILES = :id_perfiles
-        ORDER BY ID`,
-      { id_perfiles }
-    );
-    return res.json(result.rows);
+    const snapshot = await db.collection("habilidades").where("id_perfiles", "==", id_perfiles).get();
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+    const habilidades = snapshot.docs.map(mapDocWithId);
+    return res.json(habilidades);
   } catch (err) {
     console.error("GET /habilidades/perfil error:", err);
-    return res.status(500).json({ error: "Fallo al listar por perfil" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
+    return res.status(500).json({ error: "Fallo al listar por perfil", detalle: err.message });
   }
 });
 
 /**
  * GET /api/habilidades/tipo/:id_tipo_habilidad
- * Lista habilidades por tipo de habilidad
+ * Lista habilidades por un tipo específico.
  */
 router.get("/tipo/:id_tipo_habilidad", async (req, res) => {
-  let conn;
   try {
     const { id_tipo_habilidad } = req.params;
-    conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT ID, ID_PERFILES, ID_TIPO_HABILIDAD, NOM_HABILIDADES, NIVEL
-         FROM HABILIDADES
-        WHERE ID_TIPO_HABILIDAD = :id_tipo_habilidad
-        ORDER BY ID`,
-      { id_tipo_habilidad }
-    );
-    return res.json(result.rows);
+    const snapshot = await db.collection("habilidades").where("id_tipo_habilidad", "==", id_tipo_habilidad).get();
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+    const habilidades = snapshot.docs.map(mapDocWithId);
+    return res.json(habilidades);
   } catch (err) {
     console.error("GET /habilidades/tipo error:", err);
-    return res.status(500).json({ error: "Fallo al listar por tipo" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
+    return res.status(500).json({ error: "Fallo al listar por tipo", detalle: err.message });
   }
 });
 
 /**
  * PUT /api/habilidades/:id
- * Actualiza una habilidad (nombre/nivel y opcionalmente reasigna tipo)
- * Body permitido: { nom_habilidades?, nivel?, id_tipo_habilidad? }
+ * Actualiza una habilidad.
  */
-router.put("/:id", async (req, res) => {
-  let conn;
+router.put("/:id", async (req, res) => { // CORRECCIÓN: Se agregaron (req, res)
   try {
     const { id } = req.params;
-    const { nom_habilidades, nivel, id_tipo_habilidad } = normBody(req.body);
-
-    if (!nom_habilidades && !nivel && !id_tipo_habilidad) {
-      return res.status(400).json({ error: "No hay campos para actualizar" });
+    const dataToUpdate = req.body;
+    
+    // Opcional: validar que id_tipo_habilidad, si se cambia, exista.
+    if (dataToUpdate.id_tipo_habilidad) {
+        const tipoDoc = await db.collection("tipos_habilidad").doc(dataToUpdate.id_tipo_habilidad).get();
+        if (!tipoDoc.exists) {
+            return res.status(404).json({ error: "El nuevo tipo de habilidad ID no existe" });
+        }
     }
 
-    conn = await getConnection();
-
-    // Si quieren cambiar el tipo, validar que exista y esté activo
-    if (id_tipo_habilidad) {
-      const chkTipo = await conn.execute(
-        `SELECT 1 FROM TIPO_HABILIDAD WHERE ID = :id AND ACTIVO = 'S'`,
-        { id: id_tipo_habilidad }
-      );
-      if (chkTipo.rows.length === 0) {
-        return res.status(400).json({ error: "ID_TIPO_HABILIDAD no existe o está inactivo" });
-      }
-    }
-
-    // Construcción dinámica del UPDATE
-    const sets = [];
-    const binds = { id };
-
-    if (typeof nom_habilidades !== "undefined") {
-      sets.push(`NOM_HABILIDADES = :nom_habilidades`);
-      binds.nom_habilidades = nom_habilidades;
-    }
-    if (typeof nivel !== "undefined") {
-      sets.push(`NIVEL = :nivel`);
-      binds.nivel = nivel;
-    }
-    if (typeof id_tipo_habilidad !== "undefined") {
-      sets.push(`ID_TIPO_HABILIDAD = :id_tipo_habilidad`);
-      binds.id_tipo_habilidad = id_tipo_habilidad;
-    }
-
-    const sql = `
-      UPDATE HABILIDADES
-         SET ${sets.join(", ")}
-       WHERE ID = :id
-    `;
-
-    const result = await conn.execute(sql, binds, { autoCommit: true });
-    if (result.rowsAffected === 0) {
-      return res.status(404).json({ error: "Habilidad no encontrada" });
-    }
-    return res.json({ message: "Habilidad actualizada correctamente" });
+    await db.collection("habilidades").doc(id).update(dataToUpdate);
+    res.json({ message: "Habilidad actualizada" });
   } catch (err) {
     console.error("PUT /habilidades/:id error:", err);
-    if (err.errorNum === 2291) {
-      return res.status(400).json({ error: "FK inválida: tipo no existe" });
-    }
-    return res.status(500).json({ error: "Fallo al actualizar" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
+    return res.status(500).json({ error: "Fallo al actualizar habilidad", detalle: err.message });
   }
 });
 
 /**
  * DELETE /api/habilidades/:id
- * Elimina una habilidad
+ * Elimina una habilidad.
  */
-router.delete("/:id", async (req, res) => {
-  let conn;
+router.delete("/:id", async (req, res) => { // CORRECCIÓN: Se agregaron (req, res)
   try {
     const { id } = req.params;
-    conn = await getConnection();
-    const result = await conn.execute(
-      `DELETE FROM HABILIDADES WHERE ID = :id`,
-      { id },
-      { autoCommit: true }
-    );
-    if (result.rowsAffected === 0) {
-      return res.status(404).json({ error: "Habilidad no encontrada" });
-    }
-    return res.json({ message: "Habilidad eliminada correctamente" });
+    await db.collection("habilidades").doc(id).delete();
+    res.json({ message: "Habilidad eliminada" });
   } catch (err) {
     console.error("DELETE /habilidades/:id error:", err);
-    return res.status(500).json({ error: "Fallo al eliminar" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
+    return res.status(500).json({ error: "Fallo al eliminar habilidad", detalle: err.message });
   }
-
-  // GET /api/habilidades/detalle
-router.get("/detalle", async (_req, res) => {
-  let conn;
-  try {
-    conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT  h.ID,
-               h.NOM_HABILIDADES,
-               h.NIVEL,
-               h.ID_PERFILES,
-               p.NOMBRE  AS PERFIL_NOMBRE,
-               p.EMAIL   AS PERFIL_EMAIL,
-               h.ID_TIPO_HABILIDAD,
-               t.NOMBRE  AS TIPO_NOMBRE
-         FROM HABILIDADES h
-         JOIN PERFILES p ON p.ID = h.ID_PERFILES
-         JOIN TIPO_HABILIDAD t ON t.ID = h.ID_TIPO_HABILIDAD
-        ORDER BY h.ID`
-    );
-    return res.json(result.rows);
-  } catch (err) {
-    console.error("GET /habilidades/detalle error:", err);
-    return res.status(500).json({ error: "Fallo al listar detalle" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
-  }
-});
-
 });
 
 module.exports = router;
