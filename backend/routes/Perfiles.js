@@ -1,141 +1,143 @@
 const express = require("express");
 const router = express.Router();
-const getConnection = require("../db");
-const oracledb = require("oracledb");
 const bcrypt = require("bcryptjs");
-
+const { db } = require("../config/firebase");
 
 const SALT_ROUNDS = 10;
+const mapDocWithId = (doc) => ({ id: doc.id, ID: doc.id, ...doc.data() });
 
-// LISTAR (no exponemos CONTRASENA)
+/**
+ * GET /api/perfiles
+ * Lista todos los perfiles sin exponer información sensible.
+ */
 router.get("/", async (_req, res) => {
-  let conn;
   try {
-    conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT ID, NOMBRE, EMAIL, CREATED_AT FROM PERFILES ORDER BY ID`
-    );
-    return res.json(result.rows);
+    const snapshot = await db.collection("perfiles").orderBy("nombre").get();
+    if (snapshot.empty) {
+      return res.json([]);
+    }
+    // Mapeamos los datos y excluimos el hash de la contraseña.
+    const perfiles = snapshot.docs.map(doc => {
+      const { passwordHash, ...data } = doc.data(); // Excluir passwordHash
+      return { id: doc.id, ID: doc.id, ...data };
+    });
+    return res.json(perfiles);
   } catch (err) {
     console.error("GET /perfiles error:", err);
     return res.status(500).json({ error: "Fallo al listar perfiles" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// OBTENER por ID (sin contraseña)
+/**
+ * GET /api/perfiles/:id
+ * Obtiene un perfil por su ID.
+ */
 router.get("/:id", async (req, res) => {
-  let conn;
   try {
     const { id } = req.params;
-    conn = await getConnection();
-    const result = await conn.execute(
-      `SELECT ID, NOMBRE, EMAIL, CREATED_AT FROM PERFILES WHERE ID = :id`,
-      { id }
-    );
-    if (result.rows.length === 0) return res.status(404).json({ error: "Perfil no encontrado" });
-    return res.json(result.rows[0]);
+    const docRef = db.collection("perfiles").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Perfil no encontrado" });
+    }
+    
+    const { passwordHash, ...data } = doc.data(); // Excluir passwordHash
+    return res.json({ id: doc.id, ID: doc.id, ...data });
   } catch (err) {
     console.error("GET /perfiles/:id error:", err);
     return res.status(500).json({ error: "Fallo al obtener perfil" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// CREAR (hashea contrasena)
+/**
+ * POST /api/perfiles
+ * Crea un nuevo perfil, hasheando la contraseña.
+ */
 router.post("/", async (req, res) => {
-  let conn;
   try {
-    const b = req.body || {};
-    const nombre = b.nombre ?? b.NOMBRE;
-    const email = b.email ?? b.EMAIL;
-    const contrasena = b.contrasena ?? b.CONTRASENA;
+    const { nombre, email, contrasena } = req.body;
 
     if (!nombre || !email || !contrasena) {
-      return res.status(400).json({ error: "nombre, email y contrasena son obligatorios" });
+      return res.status(400).json({ error: "Nombre, email y contraseña son obligatorios" });
     }
 
-    const hash = await bcrypt.hash(contrasena, SALT_ROUNDS);
+    // --- Validación de email único ---
+    const existingUserQuery = await db.collection('perfiles').where('email', '==', email.trim().toLowerCase()).limit(1).get();
+    if (!existingUserQuery.empty) {
+        return res.status(409).json({ error: "El email ya está en uso" }); // 409 Conflict
+    }
 
-    conn = await getConnection();
-    const result = await conn.execute(
-      `INSERT INTO PERFILES (NOMBRE, EMAIL, CONTRASENA)
-       VALUES (:nombre, :email, :hash)
-       RETURNING ID INTO :out_id`,
-      {
-        nombre, email,
-        hash,
-        out_id: { dir: oracledb.BIND_OUT, type: oracledb.NUMBER }
-      },
-      { autoCommit: true }
-    );
-    return res.status(201).json({ message: "Perfil creado", id: result.outBinds.out_id[0] });
+    const passwordHash = await bcrypt.hash(contrasena, SALT_ROUNDS);
+
+    const newPerfil = {
+      nombre: nombre.trim(),
+      email: email.trim().toLowerCase(),
+      passwordHash, // Guardamos el hash, no la contraseña
+      fechaCreacion: new Date(),
+    };
+
+    const docRef = await db.collection("perfiles").add(newPerfil);
+    res.status(201).json({ message: "Perfil creado", id: docRef.id });
   } catch (err) {
     console.error("POST /perfiles error:", err);
-    if (err.errorNum === 1) return res.status(400).json({ error: "Email ya existe" });
     return res.status(500).json({ error: "Fallo al crear perfil" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// ACTUALIZAR (rehash si viene nueva contraseña)
+/**
+ * PUT /api/perfiles/:id
+ * Actualiza un perfil. Si se provee una nueva contraseña, la hashea.
+ */
 router.put("/:id", async (req, res) => {
-  let conn;
   try {
     const { id } = req.params;
-    const b = req.body || {};
-    const nombre = b.nombre ?? b.NOMBRE;
-    const email = b.email ?? b.EMAIL;
-    const contrasena = b.contrasena ?? b.CONTRASENA;
+    const { nombre, email, contrasena } = req.body;
 
-    if (!nombre || !email) {
-      return res.status(400).json({ error: "nombre y email son obligatorios" });
+    if (!nombre && !email && !contrasena) {
+      return res.status(400).json({ error: "No hay campos para actualizar" });
     }
 
-    conn = await getConnection();
+    const docRef = db.collection("perfiles").doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Perfil no encontrado" });
+    }
 
-    let sql = `UPDATE PERFILES SET NOMBRE=:nombre, EMAIL=:email`;
-    const binds = { nombre, email, id };
-
+    const updateData = {};
+    if (nombre) updateData.nombre = nombre.trim();
+    if (email) updateData.email = email.trim().toLowerCase();
     if (contrasena) {
-      const hash = await bcrypt.hash(contrasena, SALT_ROUNDS);
-      sql += `, CONTRASENA=:hash`;
-      binds.hash = hash;
+      updateData.passwordHash = await bcrypt.hash(contrasena, SALT_ROUNDS);
     }
-    sql += ` WHERE ID = :id`;
 
-    const result = await conn.execute(sql, binds, { autoCommit: true });
-    if (result.rowsAffected === 0) return res.status(404).json({ error: "Perfil no encontrado" });
+    await docRef.update(updateData);
     return res.json({ message: "Perfil actualizado" });
   } catch (err) {
     console.error("PUT /perfiles/:id error:", err);
     return res.status(500).json({ error: "Fallo al actualizar perfil" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
-// ELIMINAR
+/**
+ * DELETE /api/perfiles/:id
+ * Elimina un perfil.
+ */
 router.delete("/:id", async (req, res) => {
-  let conn;
   try {
     const { id } = req.params;
-    conn = await getConnection();
-    const result = await conn.execute(
-      `DELETE FROM PERFILES WHERE ID = :id`,
-      { id },
-      { autoCommit: true }
-    );
-    if (result.rowsAffected === 0) return res.status(404).json({ error: "Perfil no encontrado" });
+    const docRef = db.collection("perfiles").doc(id);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Perfil no encontrado" });
+    }
+
+    await docRef.delete();
     return res.json({ message: "Perfil eliminado" });
   } catch (err) {
     console.error("DELETE /perfiles/:id error:", err);
     return res.status(500).json({ error: "Fallo al eliminar perfil" });
-  } finally {
-    try { if (conn) await conn.close(); } catch {}
   }
 });
 
