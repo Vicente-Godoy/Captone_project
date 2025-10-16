@@ -1,4 +1,3 @@
-// frontend/src/components/Card.js
 import React, { useState } from "react";
 import { FaHeart, FaStar } from "react-icons/fa";
 
@@ -6,12 +5,11 @@ function Card({
   imageUrl,
   title,
   description,
-  rating,
-  liked,                 // opcional: si lo pasas, el like es controlado
-  onLike,                // callback al tocar el corazón
-  onViewProfile,         // callback al tocar "VER PERFIL"
+  rating = 0,        // valor por defecto si no llega rating
+  liked,             
+  onLike,            
+  onViewProfile,     
 }) {
-  // modo controlado vs no controlado
   const isControlled = typeof liked === "boolean";
   const [likedLocal, setLikedLocal] = useState(false);
   const isLiked = isControlled ? liked : likedLocal;
@@ -38,17 +36,13 @@ function Card({
           <div style={styles.headerLine}>
             <div style={styles.ratingWrap}>
               <FaStar size={12} style={{ marginRight: 6 }} />
-              <span style={styles.ratingText}>
-                {typeof rating === "number" ? rating.toFixed(1) : "—"}
-              </span>
+              <span style={styles.ratingText}>{rating.toFixed(1)}</span>
             </div>
-            <h3 style={styles.title}>{title || "TÍTULO DEL SERVICIO"}</h3>
+            <h3 style={styles.title}>{title || "SIN NOMBRE"}</h3>
           </div>
 
           {/* Descripción */}
-          <p style={styles.desc}>
-            {description || "Descripción breve del conocimiento/oferta."}
-          </p>
+          <p style={styles.desc}>{description || "Sin descripción disponible"}</p>
 
           {/* Acciones */}
           <div style={styles.actions}>
@@ -107,7 +101,7 @@ const styles = {
   title: {
     margin: 0,
     fontSize: 18,
-    letterSpacing: .3,
+    letterSpacing: 0.3,
     textTransform: "uppercase",
     color: "#222",
   },
@@ -128,7 +122,7 @@ const styles = {
     background: "transparent",
     color: "#111",
     fontWeight: 700,
-    letterSpacing: .4,
+    letterSpacing: 0.4,
     cursor: "pointer",
   },
   likePill: {

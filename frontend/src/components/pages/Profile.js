@@ -1,7 +1,18 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useParams } from "react-router-dom";
 
 function Profile() {
+  const { id } = useParams(); // ID del perfil desde la URL
+  const [perfil, setPerfil] = useState(null);
   const [activeTab, setActiveTab] = useState("publicaciones");
+
+  useEffect(() => {
+    // Traemos la información del perfil desde el backend
+    fetch(`http://localhost:5000/api/perfiles/${id}`)
+      .then((res) => res.json())
+      .then((data) => setPerfil(data))
+      .catch((err) => console.error("Error cargando perfil:", err));
+  }, [id]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -16,16 +27,25 @@ function Profile() {
     }
   };
 
+  if (!perfil) return <p>Cargando perfil...</p>;
+
   return (
     <div style={styles.container}>
       {/* Encabezado con foto y nombre */}
       <div style={styles.header}>
         <img
-          src="https://via.placeholder.com/80"
+          src={perfil.foto || "https://via.placeholder.com/80"}
           alt="Perfil"
           style={styles.profileImage}
         />
-        <h2 style={styles.name}>Nombre del Usuario</h2>
+        <div>
+          <h2 style={styles.name}>{perfil.nombre}</h2>
+          {perfil.conocimiento && (
+            <p style={{ margin: 0, fontSize: "14px", color: "#555" }}>
+              {perfil.conocimiento}
+            </p>
+          )}
+        </div>
       </div>
 
       {/* Barra de tabs */}
@@ -84,8 +104,8 @@ const styles = {
     display: "flex",
     borderRadius: "8px",
     overflow: "hidden",
-    border: "1px solid #d32f2f", // borde rojo
-    backgroundColor: "#d32f2f", // barra roja
+    border: "1px solid #d32f2f",
+    backgroundColor: "#d32f2f",
     marginBottom: "20px",
     cursor: "pointer",
   },
@@ -94,12 +114,12 @@ const styles = {
     padding: "10px 0",
     textAlign: "center",
     fontWeight: "bold",
-    color: "white", // letras blancas por defecto
+    color: "white",
     transition: "0.3s",
   },
   activeTab: {
-    backgroundColor: "white", // tab activo blanco
-    color: "#d32f2f", // letras rojas
+    backgroundColor: "white",
+    color: "#d32f2f",
   },
   content: {
     padding: "20px",

@@ -13,6 +13,7 @@ function Etiqueta2() {
   ];
 
   const [seleccionadas, setSeleccionadas] = useState([]);
+  const [error, setError] = useState("");
 
   const toggleEtiqueta = (et) => {
     setSeleccionadas(prev =>
@@ -20,9 +21,48 @@ function Etiqueta2() {
     );
   };
 
-  const goNext = () => {
-    console.log("Intereses seleccionados:", seleccionadas);
-    navigate("/Foto"); // 👈 respeta el casing de tu Router
+  const goNext = async () => {
+    if (seleccionadas.length === 0) {
+      setError("Debes seleccionar al menos un tema");
+      return;
+    }
+
+    const userTemp = JSON.parse(sessionStorage.getItem("userTemp") || "{}");
+    if (!userTemp.id) {
+      setError("Usuario temporal no encontrado");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token") || ""; // si ya tienes JWT
+      const res = await fetch(`http://localhost:5000/api/users/me`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          intereses: seleccionadas
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || "Error al guardar intereses");
+        return;
+      }
+
+      // Actualizamos sessionStorage
+      sessionStorage.setItem(
+        "userTemp",
+        JSON.stringify({ ...userTemp, intereses: seleccionadas })
+      );
+
+      navigate("/Foto"); // siguiente pantalla
+    } catch (err) {
+      console.error(err);
+      setError("Error de conexión con el servidor");
+    }
   };
 
   return (
@@ -49,6 +89,8 @@ function Etiqueta2() {
             </button>
           ))}
         </div>
+
+        {error && <p className="error-message">{error}</p>}
 
         <button className="btn-pill danger" onClick={goNext}>SIGUIENTE</button>
       </main>

@@ -1,23 +1,49 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Home.css";
-import PostList from "../post/PostList";
-import { POSTS_MOCK } from "../../fixtures/PostsMocks";
-
-
+import Card from "../Card";
+import BottomBar from "../BottomBar"; // 👈 tu barra flotante
 
 export default function Home() {
   const navigate = useNavigate();
-  const posts = POSTS_MOCK; // hoy MOCK; mañana Firebase
+  const [perfiles, setPerfiles] = useState([]);
+
+  // Traemos los perfiles desde la API
+  useEffect(() => {
+    fetch("http://localhost:5000/api/perfiles") // ajusta la URL si tu backend corre en otro puerto
+      .then((res) => res.json())
+      .then((data) => setPerfiles(data))
+      .catch((err) => console.error("Error cargando perfiles:", err));
+  }, []);
 
   return (
-    <div className="home">
+    <div className="home" style={{ paddingBottom: "90px" }}> {/* espacio para BottomBar */}
       <h2 className="home__title">Home</h2>
-      <PostList
-        posts={posts}
-        onLike={(p) => console.log("like?", p.id)}
-        onViewProfile={(p) => navigate(`/profile/${p.ownerUid ?? p.id}`)}
-      />
+
+      {perfiles.length === 0 ? (
+        <p>No hay perfiles disponibles</p>
+      ) : (
+        perfiles.map((perfil) => (
+          <Card
+            key={perfil.id}
+            title={perfil.conocimiento || perfil.nombre}       
+            description={perfil.descripcion || ""}            
+            imageUrl={perfil.foto || "https://via.placeholder.com/96"} 
+            onViewProfile={() => navigate(`/profile/${perfil.id}`)}
+          />
+        ))
+      )}
+
+      {/* Barra flotante fija */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 999,
+      }}>
+        <BottomBar />
+      </div>
     </div>
   );
 }
