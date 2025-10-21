@@ -1,6 +1,6 @@
 // src/App.js
 import React, { useState } from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet } from "react-router-dom";
 import { RegistroFlowProvider } from "./components/registro/RegistroFlow";
 
 // Auth / registro (pasos)
@@ -24,6 +24,15 @@ import PerfilesForm from "./components/perfiles/PerfilesForm";
 import HabilidadesList from "./components/habilidades/HabilidadesList";
 import HabilidadesForm from "./components/habilidades/HabilidadesForm";
 
+// Layout para envolver TODO el wizard con el provider
+function RegistroShell() {
+  return (
+    <RegistroFlowProvider>
+      <Outlet />
+    </RegistroFlowProvider>
+  );
+}
+
 function App() {
   const [loggedIn, setLoggedIn] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -33,24 +42,17 @@ function App() {
     <Router>
       {!loggedIn ? (
         <Routes>
-          {/* Landing */}
+          {/* Landing (Login) */}
           <Route path="/" element={<Login onLogin={setLoggedIn} />} />
 
-          {/* Wizard de registro envuelto por el Provider */}
-          <Route
-            path="/registro/*"
-            element={
-              <RegistroFlowProvider>
-                <Routes>
-                  <Route index element={<Registro />} />              {/* /registro */}
-                  <Route path="ConOfre" element={<ConOfre />} />      {/* /registro/ConOfre */}
-                  <Route path="Etiqueta1" element={<Etiqueta1 />} />  {/* /registro/Etiqueta1 */}
-                  <Route path="Etiqueta2" element={<Etiqueta2 />} />  {/* /registro/Etiqueta2 */}
-                  <Route path="Foto" element={<Foto />} />            {/* /registro/Foto */}
-                </Routes>
-              </RegistroFlowProvider>
-            }
-          />
+          {/* Wizard de registro (sin guards) */}
+          <Route element={<RegistroShell />}>
+            <Route path="/registro" element={<Registro />} />
+            <Route path="/registro/ConOfre" element={<ConOfre />} />
+            <Route path="/registro/Etiqueta1" element={<Etiqueta1 />} />
+            <Route path="/registro/Etiqueta2" element={<Etiqueta2 />} />
+            <Route path="/registro/Foto" element={<Foto />} />
+          </Route>
 
           {/* Fallback a login */}
           <Route path="*" element={<Login onLogin={setLoggedIn} />} />

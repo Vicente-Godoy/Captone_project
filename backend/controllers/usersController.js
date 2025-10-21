@@ -1,97 +1,112 @@
-// Importamos la instancia de la base de datos
+// backend/controllers/usersController.js
 const { db } = require('../config/firebase');
 
 /**
- * Obtiene el perfil completo del usuario que está actualmente autenticado.
+ * Obtiene el perfil completo del usuario autenticado.
  */
 const getMyProfile = async (req, res) => {
   try {
-    // El UID del usuario se adjuntó en el authMiddleware
     const { uid } = req.user;
-    
-    const userDoc = await db.collection('users').doc(uid).get();
+    const snap = await db.collection('users').doc(uid).get();
 
-    if (!userDoc.exists) {
+    if (!snap.exists) {
       return res.status(404).json({ error: 'Perfil de usuario no encontrado.' });
     }
 
-    res.status(200).json({ id: userDoc.id, ...userDoc.data() });
+    return res.status(200).json({ id: snap.id, ...snap.data() });
   } catch (error) {
-    console.error("Error al obtener mi perfil:", error);
-    res.status(500).json({ error: 'No se pudo obtener el perfil del usuario.' });
+    console.error('Error al obtener mi perfil:', error);
+    return res.status(500).json({ error: 'No se pudo obtener el perfil del usuario.' });
   }
 };
 
 /**
- * Actualiza el perfil del usuario autenticado.
+ * Crea o actualiza el perfil del usuario autenticado (upsert).
+ * - Si el doc no existe, lo crea.
+ * - Si existe, lo actualiza solo con los campos enviados.
  */
 const updateMyProfile = async (req, res) => {
   try {
-    const { uid } = req.user;
-    const { nombre, bio, fotoUrl, ciudad, region } = req.body;
+    const { uid, email: authEmail, name: authName } = req.user || {};
+    const { nombre, bio, fotoUrl, ciudad, region, email } = req.body || {};
 
     const userRef = db.collection('users').doc(uid);
-    const updateData = {};
 
-    // Añadimos al objeto de actualización solo los campos que vienen en la petición
-    if (nombre) updateData.nombre = nombre;
-    if (bio) updateData.bio = bio;
-    if (fotoUrl) updateData.fotoUrl = fotoUrl;
-    if (ciudad) updateData.ciudad = ciudad;
-    if (region) updateData.region = region;
-    
-    // Si no se envió ningún dato, devolvemos un error.
-    if (Object.keys(updateData).length === 0) {
-        return res.status(400).json({ error: 'No se proporcionaron datos para actualizar.' });
+    // Leemos para saber si existe (para setear createdAt la 1a vez).
+    const prev = await userRef.get();
+    const timestamps = prev.exists
+      ? { updatedAt: new Date() }
+      : { createdAt: new Date(), updatedAt: new Date() };
+
+    // Solo incluimos lo que venga en el body; además podemos rellenar nombre/email desde el token.
+    const updateData = {
+      // datos del body (opcionales)
+      ...(typeof nombre !== 'undefined' && { nombre }),
+      ...(typeof bio !== 'undefined' && { bio }),
+      ...(typeof fotoUrl !== 'undefined' && { fotoUrl }),
+      ...(typeof ciudad !== 'undefined' && { ciudad }),
+      ...(typeof region !== 'undefined' && { region }),
+      ...(typeof email !== 'undefined' && { email }),
+
+      // fallback desde el token si aún no existe el doc
+      ...(!prev.exists && (authEmail || authName) && {
+        ...(authEmail && { email: authEmail }),
+        ...(authName && { nombre: authName }),
+      }),
+
+      ...timestamps,
+    };
+
+    // Si vino vacío el body y tampoco tenemos nada que poner, igual hacemos upsert mínimo.
+    // (Así evitamos el 400 y garantizamos que el doc exista para las publicaciones)
+    if (Object.keys(updateData).length === 2 || Object.keys(updateData).length === 0) {
+      // Solo timestamps → agregamos un mínimo
+      updateData.minimal = true;
     }
 
-    updateData.fechaActualizacion = new Date();
+    // 👇 upsert seguro: crea si no existe, actualiza si existe
+    await userRef.set(updateData, { merge: true });
 
-    await userRef.update(updateData);
-
-    res.status(200).json({ message: 'Perfil actualizado con éxito.' });
+    const snap = await userRef.get();
+    return res.status(200).json({ id: snap.id, ...snap.data() });
   } catch (error) {
-    console.error("Error al actualizar mi perfil:", error);
-    res.status(500).json({ error: 'No se pudo actualizar el perfil.' });
+    console.error('Error al actualizar mi perfil:', error);
+    return res.status(500).json({ error: 'No se pudo actualizar el perfil.' });
   }
 };
 
 /**
- * Obtiene el perfil público de cualquier usuario por su ID.
- * Solo expone información no sensible.
+ * Perfil público por ID (sin datos sensibles).
  */
 const getUserProfileById = async (req, res) => {
-    try {
-        const { userId } = req.params; // El ID del usuario que queremos ver
-        const userDoc = await db.collection('users').doc(userId).get();
+  try {
+    const { userId } = req.params;
+    const userDoc = await db.collection('users').doc(userId).get();
 
-        if (!userDoc.exists) {
-            return res.status(404).json({ error: 'Usuario no encontrado.' });
-        }
-
-        const userData = userDoc.data();
-        
-        // Creamos un objeto con solo la información pública
-        const publicProfile = {
-            id: userDoc.id,
-            nombre: userData.nombre,
-            fotoUrl: userData.fotoUrl,
-            bio: userData.bio,
-            ciudad: userData.ciudad,
-            region: userData.region,
-            fechaCreacion: userData.fechaCreacion
-        };
-
-        res.status(200).json(publicProfile);
-    } catch (error) {
-        console.error("Error al obtener perfil público:", error);
-        res.status(500).json({ error: 'No se pudo obtener el perfil del usuario.' });
+    if (!userDoc.exists) {
+      return res.status(404).json({ error: 'Usuario no encontrado.' });
     }
-};
 
+    const d = userDoc.data();
+    const publicProfile = {
+      id: userDoc.id,
+      nombre: d.nombre,
+      fotoUrl: d.fotoUrl,
+      bio: d.bio,
+      ciudad: d.ciudad,
+      region: d.region,
+      fechaCreacion: d.fechaCreacion || d.createdAt,
+    };
+
+    return res.status(200).json(publicProfile);
+  } catch (error) {
+    console.error('Error al obtener perfil público:', error);
+    return res.status(500).json({ error: 'No se pudo obtener el perfil del usuario.' });
+  }
+};
 
 module.exports = {
   getMyProfile,
   updateMyProfile,
-  getUserProfileById
+  getUserProfileById,
 };

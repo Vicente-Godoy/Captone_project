@@ -1,7 +1,9 @@
+// src/components/registro/Foto.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegistroFlow } from "./RegistroFlow";
-// import axios from "axios"; // <- cuando conecten backend real
+import API_BASE from "../../api";
+import { getIdToken } from "../../services/auth";
 
 export default function Foto() {
   const navigate = useNavigate();
@@ -13,38 +15,83 @@ export default function Foto() {
     if (!f) return;
     const url = URL.createObjectURL(f);
     setPreview(url);
-    // Por ahora guardamos solo la URL temporal; cuando conecten backend,
-    // guarden el File en otro campo (p.ej. fotoFile) para subirlo.
     setRegistroData((prev) => ({ ...prev, foto: url /* , fotoFile: f */ }));
   };
 
+  // 👇 helper: asegura que exista /users/{uid} antes de publicar
+  async function ensureProfileExists(idToken) {
+    const body = {
+      // usa el nombre del registro si lo tienes, o un fallback
+      nombre: registroData?.nombre || "Usuario",
+      // si quieres mandar foto más tarde puedes agregar fotoUrl aquí
+    };
+
+    const res = await fetch(`${API_BASE}/api/users/me`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(body),
+    });
+
+    // Aceptamos 200/201/204 como OK; si viene 401/404/500, lanzamos error para verlo
+    if (!res.ok) {
+      const txt = await res.text();
+      throw new Error(`Fallo al crear/actualizar perfil (${res.status}): ${txt}`);
+    }
+  }
+
   const finish = async () => {
-    // 👉 Aquí está listo el objeto final:
-    console.log("🚀 Registro listo para enviar:", registroData);
+    try {
+      const token = await getIdToken();
+      if (!token) {
+        alert("Debes iniciar sesión para publicar.");
+        navigate("/"); // login
+        return;
+      }
 
-    // Ejemplo de cómo sería el submit real (cuando esté lista la API):
-    // try {
-    //   // 1) POST /api/auth/register con { nombre, email, password }
-    //   // 2) login a Firebase → idToken
-    //   // 3) PUT /api/users/me con el resto del perfil (usar idToken en Authorization)
-    //   // 4) subir foto si corresponde (multipart o storage)
-    //   alert("Cuenta creada (simulado). Ahora irías al login.");
-    // } catch (e) {
-    //   console.error(e);
-    //   alert("Error al registrar.");
-    //   return;
-    // }
+      // 1) 💡 asegurar el perfil
+      await ensureProfileExists(token);
 
-    // Por ahora solo volvemos al inicio.
-    navigate("/");
+      // 2) crear la publicación
+      const payload = {
+        tipo: "ofrezco",
+        titulo: registroData.conocimiento,
+        descripcion: registroData.descripcion || null,
+        nivel: registroData.nivel || null,
+        modalidad: registroData.modalidad || null,
+        ciudad: registroData.ciudad || null,
+        region: registroData.region || null,
+        tags: registroData.etiquetas || [],
+      };
+
+      const res = await fetch(`${API_BASE}/api/publications`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Error ${res.status}: ${txt}`);
+      }
+
+      alert("✅ Publicación creada");
+      navigate("/"); // o a donde quieras ir
+    } catch (e) {
+      console.error(e);
+      alert(e.message || "No se pudo crear la publicación.");
+    }
   };
 
   return (
     <div style={{ padding: 20 }}>
       <h2>Sube tu foto</h2>
-
       <input type="file" accept="image/*" onChange={handleFile} />
-
       {preview && (
         <img
           src={preview}
@@ -52,7 +99,6 @@ export default function Foto() {
           style={{ display: "block", width: 180, marginTop: 20, borderRadius: 8 }}
         />
       )}
-
       <button className="btn-pill danger" style={{ marginTop: 20 }} onClick={finish}>
         FINALIZAR
       </button>

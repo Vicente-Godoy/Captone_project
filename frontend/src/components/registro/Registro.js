@@ -2,9 +2,8 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./registro.css";
-import { registerUser } from "../../services/auth";
+import { registerUser, loginWithPassword } from "../../services/auth";
 
-// importa tus validadores
 import {
   validateName,
   validateEmail,
@@ -20,14 +19,13 @@ export default function Registro() {
   const [contrasena, setContrasena] = useState("");
 
   const [loading, setLoading] = useState(false);
-  const [errMsg, setErrMsg] = useState("");        // error general (del backend, etc.)
-  const [fieldErrors, setFieldErrors] = useState({ // errores por campo
+  const [errMsg, setErrMsg] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({
     nombre: undefined,
     email: undefined,
     contrasena: undefined,
   });
 
-  // útil para deshabilitar el botón si hay errores visibles o campos vacíos
   const hasEmpty = !nombre || !email || !contrasena;
   const hasFieldErrors = useMemo(
     () => !!(fieldErrors.nombre || fieldErrors.email || fieldErrors.contrasena),
@@ -46,20 +44,23 @@ export default function Registro() {
   const handleRegister = async () => {
     setErrMsg("");
 
-    // validación final antes de enviar
     const formErrors = validateRegisterForm({ nombre, email, contrasena });
     setFieldErrors(formErrors);
     if (Object.keys(formErrors).length > 0) return;
 
     try {
       setLoading(true);
+
+      // 1) Crear cuenta en Firebase Auth
       await registerUser({ nombre, email, password: contrasena });
 
-      alert("✅ Cuenta creada. Ahora inicia sesión.");
-      navigate("/"); // tu pantalla de Login
+      // 2) (Opcional) Auto-login para continuar con el wizard
+      await loginWithPassword(email, contrasena);
+
+      // 3) Ir al siguiente paso del flujo
+      navigate("/registro/ConOfre");
     } catch (err) {
       console.error(err);
-      // mensaje de backend si viene en err.response?.data?.message
       const backendMsg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -83,7 +84,6 @@ export default function Registro() {
         </h2>
 
         <div className="form-grid">
-          {/* Nombre */}
           <input
             type="text"
             placeholder="Nombre"
@@ -91,7 +91,6 @@ export default function Registro() {
             onChange={(e) => {
               setNombre(e.target.value);
               if (fieldErrors.nombre) {
-                // validación “en caliente” opcional
                 setFieldErrors((prev) => ({
                   ...prev,
                   nombre: validateName(e.target.value) || undefined,
@@ -109,7 +108,6 @@ export default function Registro() {
             <p className="field-error">{fieldErrors.nombre}</p>
           )}
 
-          {/* Email */}
           <input
             type="email"
             placeholder="Email"
@@ -131,7 +129,6 @@ export default function Registro() {
             <p className="field-error">{fieldErrors.email}</p>
           )}
 
-          {/* Password */}
           <input
             type="password"
             placeholder="Password"
@@ -155,7 +152,6 @@ export default function Registro() {
           )}
         </div>
 
-        {/* Error general (backend / no controlado por campo) */}
         {errMsg && <p style={{ color: "#d33", marginTop: 8 }}>{errMsg}</p>}
 
         <button
@@ -166,16 +162,8 @@ export default function Registro() {
           {loading ? "Creando..." : "REGISTRAR"}
         </button>
 
-        {/* Ayuda visual opcional para accesibilidad */}
         {(!canSubmit && !loading) && (
-          <p
-            style={{
-              color: "#666",
-              marginTop: 8,
-              fontSize: 12,
-              textAlign: "center",
-            }}
-          >
+          <p style={{ color: "#666", marginTop: 8, fontSize: 12, textAlign: "center" }}>
             Completa los campos correctamente para continuar.
           </p>
         )}
