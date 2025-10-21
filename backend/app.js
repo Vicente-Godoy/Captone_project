@@ -5,24 +5,30 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// --- Middlewares ---
+// Habilita CORS para permitir peticiones desde el frontend (localhost:3000)
 app.use(cors());
+// Parsea los cuerpos de las peticiones entrantes con formato JSON
 app.use(express.json());
 
-// --- Carga de Rutas (Endpoints) ---
+// --- Carga de Rutas ---
+// Se importa los módulos que definen los endpoints de la API.
 const authRoutes = require('./routes/authRoutes');
-const usersRoutes = require('./routes/usersRoutes'); // Importa las rutas de usuarios
+const usersRoutes = require('./routes/usersRoutes');
+const publicationsRoutes = require('./routes/publicationsRoutes');
 
-// --- Registro de Rutas ---
-// Rutas públicas de autenticación
+// --- Registro de Endpoints ---
+// Asocia cada módulo de rutas con su prefijo de URL base.
 app.use("/api/auth", authRoutes);
-// Rutas de usuarios (contiene rutas públicas y privadas)
-app.use("/api/users", usersRoutes); // Registra las rutas de usuarios
+app.use("/api/users", usersRoutes);
+app.use("/api/publications", publicationsRoutes);
 
+// --- Ruta de Verificación de Salud ---
+// Un endpoint simple para confirmar que el servidor está en línea.
+app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 
-app.get("/api/health", (_req, res) => {
-    res.status(200).json({ status: "ok", message: "Servidor SkillSwap operativo." });
-});
-
+// --- Inicio del Servidor ---
+// Pone al servidor a escuchar peticiones en el puerto especificado.
 app.listen(PORT, () => {
   console.log(`Backend corriendo en http://localhost:${PORT}`);
 });

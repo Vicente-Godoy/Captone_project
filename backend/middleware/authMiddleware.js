@@ -1,35 +1,34 @@
 const { auth } = require('../config/firebase');
 
+/**
+ * Middleware para verificar el token de Firebase ID enviado por el frontend.
+ */
 const authMiddleware = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
+    const authHeader = req.headers.authorization;
 
+    // 1. Verificar que el Headres (POSTMAN) 'Authorization' exista y tenga el formato 'Bearer <token>'
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'No autorizado: Token no proporcionado o formato incorrecto.' });
+    }
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return res.status(401).json({ error: 'No autorizado. Token no proporcionado o en formato incorrecto.' });
-  }
+    // 2. Extrae el token del encabezado.
+    const idToken = authHeader.split('Bearer ')[1];
 
-  // Extrae el token, quitando el prefijo "Bearer "
-  const idToken = authHeader.split('Bearer ')[1];
+    try {
+        // 3. Usa el SDK de Admin para verificar la validez del token con los servidores de Firebase.
+        // Si el token es inválido (expirado, malformado, etc.), esto lanzará un error.
+        const decodedToken = await auth.verifyIdToken(idToken);
 
-  try {
-    // Verifica el token usando el SDK de Admin.
-    // Si el token es inválido (expirado, malformado), esto lanzará un error.
-    const decodedToken = await auth.verifyIdToken(idToken);
-
-    // Si el token es válido, adjuntamos la información del usuario al objeto 'req'.
-    // Esto permite que los siguientes controladores sepan quién está haciendo la petición.
-    req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
-      rol: decodedToken.rol || 'USER' // Si usas custom claims para roles
-    };
-
-    // Llama a next() para pasar el control al siguiente middleware o al controlador final.
-    next();
-  } catch (error) {
-    console.error('Error al verificar el token:', error);
-    return res.status(403).json({ error: 'Acceso prohibido. El token es inválido o ha expirado.' });
-  }
+        // 4. Si el token es válido, se adjunta la información del usuario al objeto 'req'.
+        req.user = decodedToken;
+        
+        // 5. Pasa el control al siguiente middleware o al controlador final de la ruta.
+        next();
+    } catch (error) {
+        console.error('Error al verificar el token:', error);
+        return res.status(401).json({ error: 'No autorizado: Token inválido.' });
+    }
 };
 
 module.exports = authMiddleware;
+
