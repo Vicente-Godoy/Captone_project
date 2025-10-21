@@ -1,0 +1,16 @@
+# Node
+**/node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Env
+**/.env
+**/.env.* 
+
+# Credenciales backend (no subir nunca)
+backend/serviceAccountKey.json
+
+# Builds
+**/build/
+**/dist/

@@ -6,11 +6,11 @@
 .pnp.js
 
 #ENV
-.env*
+.env
 
 #Firebaseaccount
 firebase-*.json
-serviceAccountKey*.json
+serviceAccountKey.json
 
 # testing
 /coverage

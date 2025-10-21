@@ -1,66 +1,56 @@
-import React from "react";
-import Card from "../Card";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./Home.css"; // 👈 nuevo import
-
-const MOCK = [
-  {
-    id: 1,
-    title: "PROGRAMACIÓN PYTHON",
-    description:
-      "ENSEÑO PROGRAMACIÓN EN PYTHON BÁSICO, ES UNO DE LOS IDIOMAS DE PROGRAMACIÓN CON MÁS CAMPO Y MÁS ÚTILES",
-    rating: 4.8,
-    imageUrl: "https://via.placeholder.com/96?text=Py",
-    liked: false,
-  },
-  {
-    id: 2,
-    title: "CLASES DE MÚSICA",
-    description:
-      "DOMINO DIFERENTES TIPOS DE INSTRUMENTOS DE CUERDA Y DE AIRE",
-    rating: 4.2,
-    imageUrl: "https://via.placeholder.com/96?text=Mu",
-    liked: false,
-  },
-  {
-    id: 3,
-    title: "CLASES DE MÚSICA",
-    description:
-      "DOMINO DIFERENTES TIPOS DE INSTRUMENTOS DE CUERDA Y DE AIRE",
-    rating: 4.2,
-    imageUrl: "https://via.placeholder.com/96?text=Mu",
-    liked: false,
-  },
-  {
-    id: 4,
-    title: "CLASES DE MÚSICA",
-    description:
-      "DOMINO DIFERENTES TIPOS DE INSTRUMENTOS DE CUERDA Y DE AIRE",
-    rating: 4.2,
-    imageUrl: "https://via.placeholder.com/96?text=Mu",
-    liked: false,
-  },
-];
+import "./Home.css";
+import Card from "../Card";
+import BottomBar from "../BottomBar"; // 👈 tu barra flotante
+import API_BASE from "../../api"; // ajusta la ruta
 
 export default function Home() {
   const navigate = useNavigate();
+  const [perfiles, setPerfiles] = useState([]);
+
+  // Traemos los perfiles desde la API
+  // useEffect(() => {
+  //   fetch("http://localhost:5000/api/perfiles") // ajusta la URL si tu backend corre en otro puerto
+  //     .then((res) => res.json())
+  //     .then((data) => setPerfiles(data))
+  //     .catch((err) => console.error("Error cargando perfiles:", err));
+  // }, []);
+  useEffect(() => {
+    fetch(`${API_BASE}/api/perfiles`)
+      .then(res => res.json())
+      .then(data => setPerfiles(Array.isArray(data) ? data : (data.perfiles ?? [])))
+      .catch(err => console.error("Error cargando perfiles:", err));
+  }, []);
 
   return (
-    <div className="home">
+    <div className="home" style={{ paddingBottom: "90px" }}> {/* espacio para BottomBar */}
       <h2 className="home__title">Home</h2>
 
-      {MOCK.map((item) => (
-        <Card
-          key={item.id}
-          imageUrl={item.imageUrl}
-          title={item.title}
-          description={item.description}
-          rating={item.rating}
-          liked={item.liked}
-          onLike={(nuevo) => console.log("like?", item.id, nuevo)}
-          onViewProfile={() => navigate(`/profile/${item.id}`)}
-        />
-      ))}
+      {perfiles.length === 0 ? (
+        <p>No hay perfiles disponibles</p>
+      ) : (
+        perfiles.map((perfil) => (
+          <Card
+            key={perfil.id}
+            title={perfil.conocimiento || perfil.nombre}
+            description={perfil.descripcion || ""}
+            imageUrl={perfil.foto || "https://via.placeholder.com/96"}
+            onViewProfile={() => navigate(`/profile/${perfil.id}`)}
+          />
+        ))
+      )}
+
+      {/* Barra flotante fija */}
+      <div style={{
+        position: "fixed",
+        bottom: 0,
+        left: 0,
+        width: "100%",
+        zIndex: 999,
+      }}>
+        <BottomBar />
+      </div>
     </div>
   );
 }

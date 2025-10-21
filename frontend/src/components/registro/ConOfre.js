@@ -1,48 +1,63 @@
+// src/components/registro/ConOfre.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./conofre.css";
 
-function ConOfre() {
+// 👇 usamos el contexto del flujo de registro
+import { useRegistroFlow } from "./RegistroFlow";
+
+export default function ConOfre() {
   const navigate = useNavigate();
-  const [cuadro1, setCuadro1] = useState("");
-  const [cuadro2, setCuadro2] = useState("");
+  const { registroData, setRegistroData } = useRegistroFlow();
+
+  // Estado local inicializado desde el contexto
+  const [conocimiento, setConocimiento] = useState(registroData.conocimiento || "");
+  const [descripcion, setDescripcion] = useState(registroData.descripcion || "");
 
   const goNext = () => {
-    console.log("ConOfre datos:", { cuadro1, cuadro2 });
-    navigate("/Etiqueta1"); // 👈 respeta el casing de tu Router
+    if (!conocimiento || !descripcion) return;
+
+    // Guardamos en el contexto del wizard
+    setRegistroData((prev) => ({
+      ...prev,
+      conocimiento,
+      descripcion,
+    }));
+
+    // Siguiente paso del flujo (ruta absoluta dentro de /registro)
+    navigate("/registro/Etiqueta1");
   };
 
   return (
     <div className="co-page">
-      {/* Header rojo con flecha y título */}
       <header className="co-header">
         <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">
           ‹
         </button>
-        <h1 className="co-title">QUE LE OFRECES A<br />SKILLSWAPP?</h1>
+        <h1 className="co-title">¿QUÉ LE OFRECES A<br />SKILLSWAPP?</h1>
       </header>
 
       <main className="co-main">
-        <label className="co-label">PONLE UN NOMBRE A TU CONOCIMIENTO</label>
+        <label className="co-label">PÓNLE UN NOMBRE A TU CONOCIMIENTO</label>
         <input
           className="co-input"
           placeholder="Nombre del conocimiento"
-          value={cuadro1}
-          onChange={(e) => setCuadro1(e.target.value)}
+          value={conocimiento}
+          onChange={(e) => setConocimiento(e.target.value)}
         />
 
         <label className="co-label">DESCRIBE TU CONOCIMIENTO</label>
         <textarea
           className="co-textarea"
           placeholder="Descripción del conocimiento"
-          value={cuadro2}
-          onChange={(e) => setCuadro2(e.target.value)}
+          value={descripcion}
+          onChange={(e) => setDescripcion(e.target.value)}
         />
 
-        <button className="btn-pill danger" onClick={goNext}>SIGUIENTE</button>
+        <button className="btn-pill danger" onClick={goNext}>
+          SIGUIENTE
+        </button>
       </main>
     </div>
   );
 }
-
-export default ConOfre;

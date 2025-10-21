@@ -1,72 +1,76 @@
+// src/components/registro/Etiqueta1.js
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./etiqueta1.css";
 
-function Etiqueta1() {
+import { useRegistroFlow } from "./RegistroFlow";
+
+const OPCIONES = [
+  "DEPORTES", "CIENCIAS", "FITNESS", "ARTES", "MUSICA", "IDIOMAS", "FILOSOFÍA",
+  "COMPUTACION", "PROGRAMACIÓN", "ESCRITURA", "COCINA", "FINANZAS", "MODA",
+  "ROBÓTICA", "QUÍMICA", "HISTORIA", "MATEMÁTICAS", "LITERATURA"
+];
+
+export default function Etiqueta1() {
   const navigate = useNavigate();
+  const { registroData, setRegistroData } = useRegistroFlow();
 
-  const etiquetas = [
-    "DEPORTES", "CIENCIAS", "FITNESS", "ARTES", "MUSICA",
-    "IDIOMAS", "FILOSOFÍA", "COMPUTACION", "PROGRAMACIÓN", "ESCRITURA",
-    "COCINA", "FINANZAS", "MODA", "ROBÓTICA", "QUÍMICA",
-    "HISTORIA", "MATEMÁTICAS", "LITERATURA", "+"
-  ];
+  // carga inicial desde el contexto (si vuelve atrás no se pierde)
+  const [seleccionadas, setSeleccionadas] = useState(
+    Array.isArray(registroData.etiquetas) ? registroData.etiquetas : []
+  );
 
-  const [seleccionadas, setSeleccionadas] = useState([]);
-
-  const toggleEtiqueta = (etiqueta) => {
-    if (etiqueta === "+") {
-      // aquí podrías abrir un modal para agregar una nueva etiqueta
-      return;
-    }
+  const toggle = (et) => {
     setSeleccionadas((prev) =>
-      prev.includes(etiqueta)
-        ? prev.filter((e) => e !== etiqueta)
-        : [...prev, etiqueta]
+      prev.includes(et) ? prev.filter((x) => x !== et) : [...prev, et]
     );
   };
 
   const goNext = () => {
-    console.log("Etiquetas seleccionadas:", seleccionadas);
-    navigate("/Etiqueta2"); // 👈 respeta el casing del Router
+    // si quieres forzar al menos una etiqueta, descomenta:
+    // if (seleccionadas.length === 0) return;
+
+    setRegistroData((prev) => ({ ...prev, etiquetas: seleccionadas }));
+    navigate("/registro/Etiqueta2");
   };
 
   return (
     <div className="e1-page">
-      {/* Header rojo con flecha y título */}
       <header className="e1-header">
-        <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">‹</button>
+        <button
+          className="back-btn"
+          onClick={() => navigate(-1)}
+          aria-label="Volver"
+        >
+          ‹
+        </button>
         <h1 className="e1-title">DEFINE TU<br />CONOCIMIENTO</h1>
       </header>
 
       <main className="e1-main">
-        <p className="e1-sub">DEFINE TU CONOCIMIENTO ENTRE LAS SIGUIENTES ETIQUETAS</p>
+        <p className="e1-sub">
+          SELECCIONA LAS ETIQUETAS QUE DESCRIBEN TU CONOCIMIENTO
+        </p>
 
         <div className="chips-grid">
-          {etiquetas.map((et) => {
-            const selected = seleccionadas.includes(et);
-            const isPlus = et === "+";
-            return (
-              <button
-                key={et}
-                type="button"
-                onClick={() => toggleEtiqueta(et)}
-                className={[
-                  "chip",
-                  selected ? "selected" : "",
-                  isPlus ? "plus" : ""
-                ].join(" ").trim()}
-              >
-                {et}
-              </button>
-            );
-          })}
+          {OPCIONES.map((et) => (
+            <button
+              key={et}
+              type="button"
+              onClick={() => toggle(et)}
+              className={["chip", seleccionadas.includes(et) ? "selected" : ""]
+                .join(" ")
+                .trim()}
+            >
+              {et}
+            </button>
+          ))}
         </div>
 
-        <button className="btn-pill danger" onClick={goNext}>SIGUIENTE</button>
+        <button className="btn-pill danger" onClick={goNext}>
+          SIGUIENTE
+        </button>
       </main>
     </div>
   );
 }
-
-export default Etiqueta1;
