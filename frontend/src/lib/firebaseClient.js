@@ -1,24 +1,20 @@
 // src/lib/firebaseClient.js
 import { initializeApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
+import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
-// const firebaseConfig = {
-//   apiKey: "TU_API_KEY",
-//   authDomain: "TU_PROJECT_ID.firebaseapp.com",
-//   projectId: "TU_PROJECT_ID",
-//   storageBucket: "TU_PROJECT_ID.appspot.com",
-//   messagingSenderId: "XXX",
-//   appId: "1:XXX:web:YYY",
-// };
-// Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: "AIzaSyAtbAzhxTjPWPWzsme_yJ-IRzEudqTfG68",
-  authDomain: "skillswappbd.firebaseapp.com",
-  projectId: "skillswappbd",
-  storageBucket: "skillswappbd.firebasestorage.app",
-  messagingSenderId: "525655670503",
-  appId: "1:525655670503:web:649135fa716a922c76ec42"
+  apiKey: process.env.REACT_APP_FB_API_KEY,
+  authDomain: process.env.REACT_APP_FB_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FB_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FB_STORAGE_BUCKET, // debe terminar en .appspot.com
+  messagingSenderId: process.env.REACT_APP_FB_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FB_APP_ID,
 };
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
+export const storage = getStorage(app);
+export const db = getFirestore(app);
+export default app;

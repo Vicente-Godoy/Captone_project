@@ -1,0 +1,42 @@
+.bottombar {
+    position: fixed;
+    /* barra fija */
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 15px;
+    width: min(920px, 92%);
+    background: #ff4d4d;
+    border-radius: 30px;
+    padding: 14px 0;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .2);
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    justify-items: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.bb-link {
+    color: #fff;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform .15s ease, background .15s ease, color .15s ease;
+}
+
+.bb-link.active {
+    background: #fff;
+    color: #ff4d4d;
+    transform: scale(1.06);
+}
+
+/* El botón flotante se posiciona sobre la barra */
+.bottombar .post-fab {
+    position: absolute;
+    left: 50%;
+    transform: translate(-50%, -30%);
+    bottom: 28px;
+}

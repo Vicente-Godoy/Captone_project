@@ -1,0 +1,27 @@
+/* src/components/PostButton.css */
+.post-btn {
+    position: absolute;
+    left: 50%;
+    bottom: 32px;
+    transform: translate(-50%, 0);
+    width: 58px;
+    height: 58px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    border: none;
+    background: #fff;
+    color: #ff4d4d;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+    cursor: pointer;
+    transition: transform .12s ease;
+    z-index: 1100;
+}
+
+.post-btn:hover {
+    transform: translate(-50%, 0) scale(1.06);
+}
+
+.post-btn:active {
+    transform: translate(-50%, 0) scale(0.98);
+}

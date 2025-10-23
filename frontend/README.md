@@ -1,6 +1,13 @@
-# Getting Started with Create React App
+# SkillSwap Frontend
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+
+## Environment Variables
+
+Copy `.env.example` to `.env` and configure the following variables:
+
+- **Firebase Configuration**: Required for authentication and database
+- **REACT_APP_SHOW_SYNC_BUTTON**: Set to `'true'` to show the sync button in Home (for debugging only)
 
 ## Available Scripts
 

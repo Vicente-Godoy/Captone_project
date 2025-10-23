@@ -1,0 +1,110 @@
+/* src/components/post/Card.css */
+
+.card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    margin: 14px auto;
+    width: 92%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, .08);
+}
+
+.card__row {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.card__img {
+    width: 136px;
+    /* similar a maqueta */
+    height: 104px;
+    border-radius: 12px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+
+.card__body {
+    flex: 1;
+    min-width: 0;
+}
+
+.card__header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.card__rating {
+    display: inline-flex;
+    align-items: center;
+    color: #e63946;
+    /* rojo */
+    font-weight: 700;
+    font-size: 13px;
+}
+
+.card__ratingIcon {
+    margin-right: 6px;
+}
+
+.card__ratingText {
+    transform: translateY(-1px);
+}
+
+.card__title {
+    margin: 0;
+    font-size: 18px;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+    color: #222;
+    line-height: 1.1;
+}
+
+.card__desc {
+    margin: 8px 0 12px;
+    color: #666;
+    font-size: 13px;
+    line-height: 1.35;
+    text-transform: uppercase;
+}
+
+.card__actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card__viewBtn {
+    border: none;
+    background: transparent;
+    color: #111;
+    font-weight: 800;
+    letter-spacing: .4px;
+    cursor: pointer;
+}
+
+.card__likePill {
+    border: none;
+    border-radius: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 48px;
+    background: #eee;
+}
+
+.card__likePill.is-liked {
+    background: #e64545;
+}
+
+.card__likeIcon {
+    color: #111;
+}
+
+.card__likePill.is-liked .card__likeIcon {
+    color: #fff;
+}

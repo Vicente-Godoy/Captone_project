@@ -1,13 +1,42 @@
+/* src/components/pages/Home.css */
+
 .home {
-    background: #f8f8f8;
+    background: #f4f4f6;
     min-height: 100vh;
-    padding: 20px;
+    padding-bottom: 96px;
+    /* para BottomBar */
 }
 
-.home__title {
-    text-align: center;
-    color: #333;
-    margin-bottom: 16px;
-    font-weight: 700;
-    letter-spacing: 0.3px;
+.home__header {
+    width: 92%;
+    margin: 16px auto 8px;
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 12px;
+    align-items: center;
+}
+
+.home__brand {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    background: #ff5a56;
+    color: #fff;
+    font-weight: 800;
+    display: grid;
+    place-items: center;
+}
+
+.home__search {
+    height: 44px;
+    border-radius: 22px;
+    border: 1px solid #ddd;
+    padding: 0 16px;
+    outline: none;
+    font-size: 14px;
+    background: #fff;
+}
+
+.home__content {
+    padding-top: 6px;
 }

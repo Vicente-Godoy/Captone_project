@@ -3,58 +3,95 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegistroFlow } from "./RegistroFlow";
 import API_BASE from "../../api";
+import { auth, storage } from "../../lib/firebaseClient";
 import { getIdToken } from "../../services/auth";
+import { toast } from "../../utils/toast";
+import {
+  ref,
+  uploadBytesResumable,
+  getDownloadURL,
+} from "firebase/storage";
 
 export default function Foto() {
   const navigate = useNavigate();
   const { registroData, setRegistroData } = useRegistroFlow();
+
   const [preview, setPreview] = useState(registroData.foto || null);
+  const [file, setFile] = useState(null);
+  const [saving, setSaving] = useState(false);
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+    setFile(f);
     const url = URL.createObjectURL(f);
     setPreview(url);
-    setRegistroData((prev) => ({ ...prev, foto: url /* , fotoFile: f */ }));
+    setRegistroData((prev) => ({ ...prev, foto: url }));
   };
 
-  // 👇 helper: asegura que exista /users/{uid} antes de publicar
-  async function ensureProfileExists(idToken) {
-    const body = {
-      // usa el nombre del registro si lo tienes, o un fallback
-      nombre: registroData?.nombre || "Usuario",
-      // si quieres mandar foto más tarde puedes agregar fotoUrl aquí
-    };
+  const uploadAvatarAndGetUrl = (uid, f) =>
+    new Promise((resolve, reject) => {
+      const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
+      const avatarRef = ref(storage, `users/${uid}/avatar_${Date.now()}.${ext}`);
+      const metadata = { contentType: f.type || "image/jpeg" };
+      const task = uploadBytesResumable(avatarRef, f, metadata);
 
-    const res = await fetch(`${API_BASE}/api/users/me`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${idToken}`,
-      },
-      body: JSON.stringify(body),
+      task.on(
+        "state_changed",
+        // progreso (opcional)
+        () => { },
+        (err) => reject(err),
+        async () => {
+          try {
+            const url = await getDownloadURL(avatarRef);
+            resolve(url);
+          } catch (e) {
+            reject(e);
+          }
+        }
+      );
     });
-
-    // Aceptamos 200/201/204 como OK; si viene 401/404/500, lanzamos error para verlo
-    if (!res.ok) {
-      const txt = await res.text();
-      throw new Error(`Fallo al crear/actualizar perfil (${res.status}): ${txt}`);
-    }
-  }
 
   const finish = async () => {
     try {
+      setSaving(true);
       const token = await getIdToken();
-      if (!token) {
-        alert("Debes iniciar sesión para publicar.");
-        navigate("/"); // login
+      const uid = auth.currentUser?.uid;
+
+      if (!token || !uid) {
+        toast.error("Debes iniciar sesión para publicar.");
+        navigate("/");
         return;
       }
 
-      // 1) 💡 asegurar el perfil
-      await ensureProfileExists(token);
+      // 1) Subir foto y actualizar perfil (si el usuario eligió archivo)
+      let fotoUrlFinal = null;
+      if (file) {
+        try {
+          fotoUrlFinal = await uploadAvatarAndGetUrl(uid, file);
 
-      // 2) crear la publicación
+          const resProfile = await fetch(`${API_BASE}/api/users/me`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ fotoUrl: fotoUrlFinal }),
+          });
+
+          if (!resProfile.ok) {
+            const txt = await resProfile.text();
+            console.warn("Actualizar perfil falló:", txt);
+          }
+        } catch (e) {
+          console.error("Upload avatar falló:", e);
+          toast.error(
+            "La publicación continuará, pero la foto de perfil no se pudo subir (revisa bloqueadores/antivirus/VPN)."
+          );
+        }
+      }
+
+      // 2) Crear publicación en tu backend
       const payload = {
         tipo: "ofrezco",
         titulo: registroData.conocimiento,
@@ -66,7 +103,7 @@ export default function Foto() {
         tags: registroData.etiquetas || [],
       };
 
-      const res = await fetch(`${API_BASE}/api/publications`, {
+      const resPub = await fetch(`${API_BASE}/api/publications`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -75,23 +112,43 @@ export default function Foto() {
         body: JSON.stringify(payload),
       });
 
-      if (!res.ok) {
-        const txt = await res.text();
-        throw new Error(`Error ${res.status}: ${txt}`);
+      if (!resPub.ok) {
+        const txt = await resPub.text();
+        throw new Error(`Error al crear publicación: ${txt}`);
       }
 
-      alert("✅ Publicación creada");
-      navigate("/"); // o a donde quieras ir
+      toast.success("✅ Perfil actualizado y publicación creada.");
+      navigate("/");
     } catch (e) {
       console.error(e);
-      alert(e.message || "No se pudo crear la publicación.");
+      toast.error(e.message || "No se pudo completar el proceso.");
+    } finally {
+      setSaving(false);
     }
   };
 
   return (
     <div style={{ padding: 20 }}>
-      <h2>Sube tu foto</h2>
+      <div style={{ marginBottom: '20px' }}>
+        <button
+          onClick={() => navigate('/')}
+          style={{
+            backgroundColor: '#6c757d',
+            color: 'white',
+            border: 'none',
+            padding: '8px 16px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginBottom: '16px'
+          }}
+        >
+          ← Volver al Home
+        </button>
+        <h2>Sube tu foto</h2>
+      </div>
+
       <input type="file" accept="image/*" onChange={handleFile} />
+
       {preview && (
         <img
           src={preview}
@@ -99,8 +156,14 @@ export default function Foto() {
           style={{ display: "block", width: 180, marginTop: 20, borderRadius: 8 }}
         />
       )}
-      <button className="btn-pill danger" style={{ marginTop: 20 }} onClick={finish}>
-        FINALIZAR
+
+      <button
+        className="btn-pill danger"
+        style={{ marginTop: 20 }}
+        onClick={finish}
+        disabled={saving}
+      >
+        {saving ? "Guardando..." : "FINALIZAR"}
       </button>
     </div>
   );

@@ -51,13 +51,13 @@ export default function Registro() {
     try {
       setLoading(true);
 
-      // 1) Crear cuenta en Firebase Auth
+      // 1) Crear cuenta en Firebase Auth (el service además hace bootstrap del perfil en backend)
       await registerUser({ nombre, email, password: contrasena });
 
-      // 2) (Opcional) Auto-login para continuar con el wizard
+      // 2) (a prueba de balas) iniciar sesión para continuar el flujo
       await loginWithPassword(email, contrasena);
 
-      // 3) Ir al siguiente paso del flujo
+      // 3) Ir al siguiente paso del wizard para llenar los datos del post
       navigate("/registro/ConOfre");
     } catch (err) {
       console.error(err);

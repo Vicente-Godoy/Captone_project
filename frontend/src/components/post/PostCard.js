@@ -1,17 +1,24 @@
+// src/components/post/PostCard.js
 import React from "react";
-import Card from "../Card";
+import Card from "../post/Card";
+import { useAuthorName } from "../../hooks/useAuthorName";
 
 export default function PostCard({ post, onLike, onViewProfile }) {
+    const { authorName } = useAuthorName(post);
+
     if (!post) return null;
+
     return (
         <Card
-            imageUrl={post.imageUrl}
-            title={post.title}
-            description={post.description}
-            rating={post.rating}
+            imageUrl={post.imageUrl || post.creatorInfo?.fotoUrl}
+            title={post.titulo}
+            description={post.descripcion}
+            rating={post.rating ?? 0}
             liked={post.liked}
             onLike={onLike}
-            onViewProfile={onViewProfile}
+            onViewProfile={() => onViewProfile?.(post)}
+            authorName={authorName}
+            authorUid={post.authorUid || post.creatorId}
         />
     );
 }

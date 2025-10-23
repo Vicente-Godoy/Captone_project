@@ -16,10 +16,13 @@ export async function getPublicationById(id) {
 }
 
 export async function createPublication(body) {
-    // body = { tipo, titulo, descripcion, nivel, modalidad, ciudad, region, tags }
+    // body = { title, content, imageUrl? } o { tipo, titulo, descripcion, nivel, modalidad, ciudad, region, tags }
     const auth = getAuth();
     const user = auth.currentUser;
     if (!user) throw new Error("No hay usuario autenticado");
+
+    console.log('📝 [CREATE PUBLICATION] Frontend request:', body);
+
     const idToken = await user.getIdToken();
 
     const res = await fetch(`${API_BASE}/api/publications`, {
@@ -32,6 +35,21 @@ export async function createPublication(body) {
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.error || "No se pudo crear la publicación");
-    return data; // { message, id }
+
+    if (!res.ok) {
+        console.error('❌ [CREATE PUBLICATION] Backend error:', data);
+        throw new Error(data?.error || "No se pudo crear la publicación");
+    }
+
+    console.log('✅ [CREATE PUBLICATION] Success:', data);
+    return data; // { message, id, title }
+}
+
+export async function fetchPublications() {
+    const res = await fetch(`${API_BASE}/api/publications`);
+    if (!res.ok) {
+        const txt = await res.text();
+        throw new Error(`Error ${res.status}: ${txt}`);
+    }
+    return res.json(); // array de publicaciones
 }

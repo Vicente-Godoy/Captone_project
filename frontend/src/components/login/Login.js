@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./login.css";
-import { loginWithPassword } from "../../services/auth"; // 👈 usa Firebase Web SDK
+import { loginWithPassword } from "../../services/auth"; // solo login
 
 function Login({ onLogin }) {
   const [user, setUser] = useState("");
@@ -26,11 +26,9 @@ function Login({ onLogin }) {
       // 🔐 Login real (Firebase). Guarda idToken en localStorage (lo hace el service)
       await loginWithPassword(user, pass);
 
-      // Levanta el flag en App (si lo usas) y envía al flujo de registro/offer
       onLogin?.(true);
-
-      // Si quieres ir a Home cámbialo por: navigate("/")
-      navigate("/registro/ConOfre");
+      // Navigate to Home after login (not to wizard)
+      navigate("/");
     } catch (e) {
       console.error(e);
       setErr(e.message || "No se pudo iniciar sesión.");
@@ -60,7 +58,9 @@ function Login({ onLogin }) {
       <div className="card">
         <form onSubmit={handleSubmit} className="login-form">
           <div className="input-wrap">
-            <span className="icon" aria-hidden>👤</span>
+            <span className="icon" aria-hidden>
+              👤
+            </span>
             <input
               type="email"
               placeholder="Email"
@@ -71,7 +71,9 @@ function Login({ onLogin }) {
           </div>
 
           <div className="input-wrap">
-            <span className="icon" aria-hidden>🔒</span>
+            <span className="icon" aria-hidden>
+              🔒
+            </span>
             <input
               type="password"
               placeholder="Password"
@@ -82,9 +84,7 @@ function Login({ onLogin }) {
           </div>
 
           {err && (
-            <p style={{ color: "#d33", marginTop: 8, minHeight: 18 }}>
-              {err}
-            </p>
+            <p style={{ color: "#d33", marginTop: 8, minHeight: 18 }}>{err}</p>
           )}
 
           <button
@@ -95,6 +95,7 @@ function Login({ onLogin }) {
             {loading ? "Ingresando..." : "INGRESAR"}
           </button>
 
+          {/* Solo redirige al wizard de registro */}
           <button
             type="button"
             className="btn-pill secondary"
@@ -106,7 +107,9 @@ function Login({ onLogin }) {
         </form>
       </div>
 
-      <a className="forgot" href="#recuperar">RECUPERA TU CONTRASEÑA</a>
+      <a className="forgot" href="#recuperar">
+        RECUPERA TU CONTRASEÑA
+      </a>
     </div>
   );
 }
