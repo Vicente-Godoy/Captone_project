@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import API_BASE from "../../api";
 
 function Profile() {
   const { id } = useParams(); // ID del perfil desde la URL
@@ -7,9 +8,13 @@ function Profile() {
   const [activeTab, setActiveTab] = useState("publicaciones");
 
   useEffect(() => {
-    // Traemos la información del perfil desde el backend
-    fetch(`http://localhost:5000/api/perfiles/${id}`)
-      .then((res) => res.json())
+    if (!id) return;
+    // Traer perfil público desde el endpoint unificado
+    fetch(`${API_BASE}/api/users/${id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`Error ${res.status}`);
+        return res.json();
+      })
       .then((data) => setPerfil(data))
       .catch((err) => console.error("Error cargando perfil:", err));
   }, [id]);
@@ -34,15 +39,20 @@ function Profile() {
       {/* Encabezado con foto y nombre */}
       <div style={styles.header}>
         <img
-          src={perfil.foto || "https://via.placeholder.com/80"}
+          src={perfil.fotoUrl || "https://via.placeholder.com/80"}
           alt="Perfil"
           style={styles.profileImage}
         />
         <div>
           <h2 style={styles.name}>{perfil.nombre}</h2>
-          {perfil.conocimiento && (
+          {perfil.bio && (
             <p style={{ margin: 0, fontSize: "14px", color: "#555" }}>
-              {perfil.conocimiento}
+              {perfil.bio}
+            </p>
+          )}
+          {(perfil.ciudad || perfil.region) && (
+            <p style={{ margin: 0, fontSize: "12px", color: "#777" }}>
+              {[perfil.ciudad, perfil.region].filter(Boolean).join(", ")}
             </p>
           )}
         </div>

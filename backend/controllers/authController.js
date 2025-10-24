@@ -12,7 +12,7 @@ const register = async (req, res) => {
       return res.status(400).json({ error: "Email, contraseña y nombre son obligatorios." });
     }
 
-    // 1. Crear el usuario en el servicio de Firebase Authentication
+    // 1. Crear el usuario en Firebase Authentication
     const userRecord = await auth.createUser({
       email: email,
       password: password,
@@ -25,7 +25,7 @@ const register = async (req, res) => {
       nombre: nombre,
       email: email,
       fechaCreacion: new Date(),
-      rol: 'USER', // Asignar un rol por defecto
+      rol: 'USER', // Rol por defecto
       fotoUrl: null,
       bio: null,
     };
@@ -33,7 +33,7 @@ const register = async (req, res) => {
     // Escribimos el documento en Firestore
     await db.collection('users').doc(userRecord.uid).set(userProfile);
 
-    // 3. Enviar una respuesta exitosa
+    // 3. Respuesta
     return res.status(201).json({
       message: "Usuario registrado con éxito.",
       uid: userRecord.uid
@@ -41,7 +41,6 @@ const register = async (req, res) => {
 
   } catch (error) {
     console.error("Error en el registro:", error);
-    // Manejar errores comunes de Firebase Auth
     if (error.code === 'auth/email-already-exists') {
       return res.status(409).json({ error: "El correo electrónico ya está en uso." });
     }
@@ -50,3 +49,4 @@ const register = async (req, res) => {
 };
 
 module.exports = { register };
+

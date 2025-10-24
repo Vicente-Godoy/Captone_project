@@ -1,6 +1,5 @@
 // services/publications.js
-import API_BASE from "../api"; // ya tienes esto
-// Si usas Firebase Client SDK:
+import API_BASE from "../api";
 import { getAuth } from "firebase/auth";
 
 export async function getFeed() {
@@ -21,7 +20,7 @@ export async function createPublication(body) {
     const user = auth.currentUser;
     if (!user) throw new Error("No hay usuario autenticado");
 
-    console.log('📝 [CREATE PUBLICATION] Frontend request:', body);
+    console.log('[CREATE PUBLICATION] Frontend request:', body);
 
     const idToken = await user.getIdToken();
 
@@ -37,11 +36,11 @@ export async function createPublication(body) {
     const data = await res.json();
 
     if (!res.ok) {
-        console.error('❌ [CREATE PUBLICATION] Backend error:', data);
+        console.error('[CREATE PUBLICATION] Backend error:', data);
         throw new Error(data?.error || "No se pudo crear la publicación");
     }
 
-    console.log('✅ [CREATE PUBLICATION] Success:', data);
+    console.log('[CREATE PUBLICATION] Success:', data);
     return data; // { message, id, title }
 }
 
@@ -53,3 +52,4 @@ export async function fetchPublications() {
     }
     return res.json(); // array de publicaciones
 }
+

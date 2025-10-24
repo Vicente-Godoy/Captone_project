@@ -5,6 +5,7 @@ import {
     createUserWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
+    updateProfile,
 } from "firebase/auth";
 import API_BASE from "../api";
 import { toast } from "../utils/toast";
@@ -77,10 +78,10 @@ async function syncUserWithBackend(user, maxRetries = 2) {
 export async function registerUser({ nombre, email, password }) {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
 
-    // Actualizar displayName si se proporcionó
+    // Actualizar displayName si se proporcionó (API modular)
     if (nombre && cred.user) {
         try {
-            await cred.user.updateProfile({ displayName: nombre });
+            await updateProfile(cred.user, { displayName: nombre });
         } catch (error) {
             console.warn('No se pudo actualizar displayName:', error);
         }

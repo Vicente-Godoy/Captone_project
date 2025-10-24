@@ -19,7 +19,7 @@ export default function CreatePostForm({ onPostCreated }) {
 
         try {
             setLoading(true);
-            console.log('📝 [CREATE POST FORM] Submitting:', { title, content, imageUrl });
+            console.log('[CREATE POST FORM] Submitting:', { title, content, imageUrl });
 
             const result = await createPublication({
                 title: title.trim(),
@@ -27,7 +27,7 @@ export default function CreatePostForm({ onPostCreated }) {
                 imageUrl: imageUrl.trim() || null
             });
 
-            console.log('✅ [CREATE POST FORM] Success:', result);
+            console.log('[CREATE POST FORM] Success:', result);
             toast.success(`Post "${result.title}" creado exitosamente`);
 
             // Reset form
@@ -39,7 +39,7 @@ export default function CreatePostForm({ onPostCreated }) {
             onPostCreated?.(result);
 
         } catch (error) {
-            console.error('❌ [CREATE POST FORM] Error:', error);
+            console.error('[CREATE POST FORM] Error:', error);
             toast.error(`Error creando post: ${error.message}`);
         } finally {
             setLoading(false);

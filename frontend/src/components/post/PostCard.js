@@ -11,8 +11,8 @@ export default function PostCard({ post, onLike, onViewProfile }) {
     return (
         <Card
             imageUrl={post.imageUrl || post.creatorInfo?.fotoUrl}
-            title={post.titulo}
-            description={post.descripcion}
+            title={post.title || post.titulo}
+            description={post.content || post.descripcion}
             rating={post.rating ?? 0}
             liked={post.liked}
             onLike={onLike}

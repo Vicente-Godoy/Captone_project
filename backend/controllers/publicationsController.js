@@ -1,4 +1,5 @@
 const { db } = require('../config/firebase');
+const admin = require('firebase-admin');
 
 /**
  * Crea una nueva publicación.
@@ -10,7 +11,7 @@ const createPublication = async (req, res) => {
     const { title, content, imageUrl, tipo, titulo, descripcion, nivel, modalidad, ciudad, region, tags } = req.body;
 
     // Log del request
-    console.log(`📝 [CREATE PUBLICATION] Request from user ${uid}:`, {
+    console.log(`[CREATE PUBLICATION] Request from user ${uid}:`, {
       title, content, imageUrl, tipo, titulo, descripcion
     });
 
@@ -19,7 +20,7 @@ const createPublication = async (req, res) => {
     const finalContent = content || descripcion;
 
     if (!finalTitle) {
-      console.log('❌ [CREATE PUBLICATION] Missing title');
+      console.log('[CREATE PUBLICATION] Missing title');
       return res.status(400).json({ error: 'Título es obligatorio.' });
     }
 
@@ -27,11 +28,11 @@ const createPublication = async (req, res) => {
     // 1. Obtener el documento del perfil del creador
     const userDoc = await db.collection('users').doc(uid).get();
     if (!userDoc.exists) {
-      console.log(`❌ [CREATE PUBLICATION] User ${uid} not found in Firestore`);
+      console.log(`[CREATE PUBLICATION] User ${uid} not found in Firestore`);
       return res.status(404).json({ error: 'El usuario creador no existe.' });
     }
     const userData = userDoc.data();
-    console.log(`✅ [CREATE PUBLICATION] User data retrieved:`, { nombre: userData.nombre });
+    console.log(`[CREATE PUBLICATION] User data retrieved:`, { nombre: userData.nombre });
     // --- Fin de la Denormalización ---
 
     const newPublication = {
@@ -59,10 +60,10 @@ const createPublication = async (req, res) => {
       region: region || null,
       tags: tags || [],
       activo: true,
-      fechaCreacion: new Date(), // TODO: Cambiar a serverTimestamp() cuando esté disponible
+      fechaCreacion: admin.firestore.FieldValue.serverTimestamp(),
     };
 
-    console.log(`💾 [CREATE PUBLICATION] Saving to Firestore:`, {
+    console.log(`[CREATE PUBLICATION] Saving to Firestore:`, {
       creatorId: newPublication.creatorId,
       title: newPublication.title,
       activo: newPublication.activo
@@ -70,7 +71,7 @@ const createPublication = async (req, res) => {
 
     const docRef = await db.collection('publications').add(newPublication);
 
-    console.log(`✅ [CREATE PUBLICATION] Success! Document ID: ${docRef.id}`);
+    console.log(`[CREATE PUBLICATION] Success! Document ID: ${docRef.id}`);
     res.status(201).json({
       message: 'Publicación creada con éxito',
       id: docRef.id,
@@ -78,7 +79,7 @@ const createPublication = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("❌ [CREATE PUBLICATION] Error:", error);
+    console.error("[CREATE PUBLICATION] Error:", error);
     res.status(500).json({ error: 'No se pudo crear la publicación.' });
   }
 };
@@ -87,9 +88,9 @@ const createPublication = async (req, res) => {
  * Obtiene todas las publicaciones activas (el feed principal).
  * Es una consulta única y eficiente gracias a la denormalización.
  */
-const getAllPublications = async (req, res) => {
+const getAllPublications = async (_req, res) => {
   try {
-    console.log('📖 [GET PUBLICATIONS] Fetching active publications...');
+    console.log('[GET PUBLICATIONS] Fetching active publications...');
 
     const snapshot = await db.collection('publications')
       .where('activo', '==', true)
@@ -97,16 +98,16 @@ const getAllPublications = async (req, res) => {
       .limit(50) // Paginación básica para no traer toda la base de datos
       .get();
 
-    console.log(`📊 [GET PUBLICATIONS] Found ${snapshot.size} publications`);
+    console.log(`[GET PUBLICATIONS] Found ${snapshot.size} publications`);
 
     if (snapshot.empty) {
-      console.log('📭 [GET PUBLICATIONS] No publications found, returning empty array');
+      console.log('[GET PUBLICATIONS] No publications found, returning empty array');
       return res.status(200).json([]);
     }
 
     const publications = snapshot.docs.map(doc => {
       const data = doc.data();
-      console.log(`📄 [GET PUBLICATIONS] Publication ${doc.id}:`, {
+      console.log(`[GET PUBLICATIONS] Publication ${doc.id}:`, {
         title: data.title || data.titulo,
         creator: data.creatorInfo?.nombre,
         activo: data.activo,
@@ -118,11 +119,11 @@ const getAllPublications = async (req, res) => {
       };
     });
 
-    console.log(`✅ [GET PUBLICATIONS] Returning ${publications.length} publications`);
+    console.log(`[GET PUBLICATIONS] Returning ${publications.length} publications`);
     res.status(200).json(publications);
 
   } catch (error) {
-    console.error("❌ [GET PUBLICATIONS] Error:", error);
+    console.error("[GET PUBLICATIONS] Error:", error);
     res.status(500).json({ error: 'No se pudieron obtener las publicaciones.' });
   }
 };
@@ -153,3 +154,4 @@ module.exports = {
   getAllPublications,
   getPublicationById,
 };
+

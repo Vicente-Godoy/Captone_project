@@ -63,6 +63,7 @@ function App() {
                 <Route path="/publicar" element={<Publicar />} />
                 <Route path="/likes" element={<Likes />} />
                 <Route path="/chat" element={<Chat />} />
+                <Route path="/chat/:id" element={<Chat />} />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
 

@@ -1,16 +1,12 @@
 // src/components/registro/Foto.js
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegistroFlow } from "./RegistroFlow";
 import API_BASE from "../../api";
 import { auth, storage } from "../../lib/firebaseClient";
 import { getIdToken } from "../../services/auth";
 import { toast } from "../../utils/toast";
-import {
-  ref,
-  uploadBytesResumable,
-  getDownloadURL,
-} from "firebase/storage";
+import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 
 export default function Foto() {
   const navigate = useNavigate();
@@ -19,15 +15,43 @@ export default function Foto() {
   const [preview, setPreview] = useState(registroData.foto || null);
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
+  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
     if (!f) return;
+
+    if (!f.type?.startsWith("image/")) {
+      toast.error("El archivo debe ser una imagen.");
+      return;
+    }
+    if (f.size > MAX_SIZE) {
+      toast.error("La imagen supera los 5MB.");
+      return;
+    }
+
+    // Liberar previo objectURL si existía
+    if (preview && preview.startsWith("blob:")) {
+      try {
+        URL.revokeObjectURL(preview);
+      } catch {}
+    }
+
     setFile(f);
     const url = URL.createObjectURL(f);
     setPreview(url);
     setRegistroData((prev) => ({ ...prev, foto: url }));
   };
+
+  useEffect(() => {
+    return () => {
+      if (preview && preview.startsWith("blob:")) {
+        try {
+          URL.revokeObjectURL(preview);
+        } catch {}
+      }
+    };
+  }, [preview]);
 
   const uploadAvatarAndGetUrl = (uid, f) =>
     new Promise((resolve, reject) => {
@@ -38,8 +62,7 @@ export default function Foto() {
 
       task.on(
         "state_changed",
-        // progreso (opcional)
-        () => { },
+        () => {},
         (err) => reject(err),
         async () => {
           try {
@@ -83,6 +106,8 @@ export default function Foto() {
             const txt = await resProfile.text();
             console.warn("Actualizar perfil falló:", txt);
           }
+          // Guardar URL final en el flujo
+          setRegistroData((prev) => ({ ...prev, foto: fotoUrlFinal }));
         } catch (e) {
           console.error("Upload avatar falló:", e);
           toast.error(
@@ -91,11 +116,11 @@ export default function Foto() {
         }
       }
 
-      // 2) Crear publicación en tu backend
+      // 2) Crear publicación en backend (formato unificado)
       const payload = {
-        tipo: "ofrezco",
-        titulo: registroData.conocimiento,
-        descripcion: registroData.descripcion || null,
+        title: registroData.conocimiento,
+        content: registroData.descripcion || null,
+        imageUrl: fotoUrlFinal || null,
         nivel: registroData.nivel || null,
         modalidad: registroData.modalidad || null,
         ciudad: registroData.ciudad || null,
@@ -117,7 +142,7 @@ export default function Foto() {
         throw new Error(`Error al crear publicación: ${txt}`);
       }
 
-      toast.success("✅ Perfil actualizado y publicación creada.");
+      toast.success("Perfil actualizado y publicación creada.");
       navigate("/");
     } catch (e) {
       console.error(e);
@@ -129,17 +154,17 @@ export default function Foto() {
 
   return (
     <div style={{ padding: 20 }}>
-      <div style={{ marginBottom: '20px' }}>
+      <div style={{ marginBottom: "20px" }}>
         <button
-          onClick={() => navigate('/')}
+          onClick={() => navigate("/")}
           style={{
-            backgroundColor: '#6c757d',
-            color: 'white',
-            border: 'none',
-            padding: '8px 16px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginBottom: '16px'
+            backgroundColor: "#6c757d",
+            color: "white",
+            border: "none",
+            padding: "8px 16px",
+            borderRadius: "4px",
+            cursor: "pointer",
+            marginBottom: "16px",
           }}
         >
           ← Volver al Home
@@ -168,3 +193,4 @@ export default function Foto() {
     </div>
   );
 }
+

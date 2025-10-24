@@ -1,11 +1,21 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
 import { FaHome, FaHeart, FaComments, FaUser } from "react-icons/fa";
 import PostButton from "./PostButton";
 import "./BottomBar.css";
 
 export default function BottomBar() {
   const navigate = useNavigate();
+
+  const goToMyProfile = () => {
+    const uid = getAuth().currentUser?.uid;
+    if (uid) {
+      navigate(`/profile/${uid}`);
+    } else {
+      navigate(`/profile`);
+    }
+  };
 
   return (
     <div className="bottombar">
@@ -30,12 +40,15 @@ export default function BottomBar() {
         <FaComments size={22} />
       </NavLink>
 
-      <NavLink
-        to="/profile"
-        className={({ isActive }) => `bb-link ${isActive ? "active" : ""}`}
+      <button
+        type="button"
+        onClick={goToMyProfile}
+        className="bb-link"
+        aria-label="Mi perfil"
+        title="Mi perfil"
       >
         <FaUser size={22} />
-      </NavLink>
+      </button>
 
       {/* FAB centrado */}
       <PostButton onClick={() => navigate("/registro/ConOfre")} />

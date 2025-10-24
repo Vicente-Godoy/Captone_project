@@ -6,6 +6,8 @@ import "./Home.css";
 import LogoutButton from "../common/LogoutButton";
 import SyncButton from "../common/SyncButton";
 import { fetchPublications } from "../../services/publications";
+import { likePublication } from "../../services/interactions";
+import { toast } from "../../utils/toast";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -15,14 +17,14 @@ export default function Home() {
 
   const refreshPosts = async () => {
     try {
-      console.log('🔄 [HOME] Refreshing posts...');
+      console.log('[HOME] Refreshing posts...');
       setLoading(true);
       const data = await fetchPublications();
-      console.log('✅ [HOME] Posts refreshed:', data.length);
+      console.log('[HOME] Posts refreshed:', data.length);
       setPosts(data || []);
       setError(null);
     } catch (err) {
-      console.error('❌ [HOME] Error refreshing posts:', err);
+      console.error('[HOME] Error refreshing posts:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -63,9 +65,19 @@ export default function Home() {
 
         <PostList
           posts={posts}
-          onLike={(liked) => console.log("like?", liked)}
+          onLike={async (post) => {
+            try {
+              const res = await likePublication(post.id);
+              if (res.matched) {
+                toast.success('¡Tienen un match!');
+              } else {
+                toast.info('Like enviado');
+              }
+            } catch (e) {
+              toast.error(e.message);
+            }
+          }}
           onViewProfile={(post) => {
-            console.log("ver perfil", post);
             const authorUid = post.authorUid || post.creatorId;
             if (authorUid) {
               navigate(`/profile/${authorUid}`);

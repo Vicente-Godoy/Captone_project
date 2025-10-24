@@ -1,6 +1,7 @@
 export function validateName(nombre) {
     if (!nombre || !nombre.trim()) return "El nombre es obligatorio.";
-    const re = /^[A-Za-zÁÉÍÓÚÜÑáéíóúüñ\s]{2,40}$/;
+    // Permitir letras Unicode y espacios, 2-40 caracteres
+    const re = /^[\p{L}\s]{2,40}$/u;
     if (!re.test(nombre)) return "Solo letras y espacios (2–40).";
     return null;
 }

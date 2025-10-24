@@ -23,11 +23,9 @@ function Login({ onLogin }) {
 
     try {
       setLoading(true);
-      // 🔐 Login real (Firebase). Guarda idToken en localStorage (lo hace el service)
       await loginWithPassword(user, pass);
 
       onLogin?.(true);
-      // Navigate to Home after login (not to wizard)
       navigate("/");
     } catch (e) {
       console.error(e);
@@ -59,7 +57,7 @@ function Login({ onLogin }) {
         <form onSubmit={handleSubmit} className="login-form">
           <div className="input-wrap">
             <span className="icon" aria-hidden>
-              👤
+              •
             </span>
             <input
               type="email"
@@ -72,7 +70,7 @@ function Login({ onLogin }) {
 
           <div className="input-wrap">
             <span className="icon" aria-hidden>
-              🔒
+              •
             </span>
             <input
               type="password"
@@ -115,3 +113,4 @@ function Login({ onLogin }) {
 }
 
 export default Login;
+
