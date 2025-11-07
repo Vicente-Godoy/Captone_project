@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, doc, setDoc, where } from "firebase/firestore";
+import { useParams, useNavigate, Navigate } from "react-router-dom";
+import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, doc, setDoc, where, Timestamp } from "firebase/firestore";
 import { db } from "../../lib/firebaseClient";
 import { getAuth } from "firebase/auth";
 import { getMatches } from "../../services/interactions";
+import { createCalendarEventFromSchedule } from "../../services/calendar";
 import "./Chat.css";
 
 function Chat() {
@@ -19,6 +20,10 @@ function Chat() {
   const [text, setText] = useState("");
   const [other, setOther] = useState(null); // para header de conversación
   const bottomRef = useRef(null);
+
+  // UI para agendar reunión
+  const [showScheduler, setShowScheduler] = useState(false);
+  const [scheduleValue, setScheduleValue] = useState(""); // ISO para input datetime-local
 
   // Cargar lista de matches si no hay conversación seleccionada
   useEffect(() => {
@@ -90,17 +95,152 @@ function Chat() {
       fromUid: me.uid,
       text: text.trim(),
       sentAt: serverTimestamp(),
+      type: "text",
     };
     await addDoc(collection(db, "conversations", id, "messages"), payload);
     // Denormalizar último mensaje en conversation
-    await setDoc(doc(db, "conversations", id), {
-      lastMessageText: payload.text,
-      lastMessageAt: serverTimestamp(),
-    }, { merge: true });
+    await setDoc(
+      doc(db, "conversations", id),
+      { lastMessageText: payload.text, lastMessageAt: serverTimestamp() },
+      { merge: true }
+    );
     setText("");
   };
 
+  // Helpers para formatear fecha/hora
+  const formatDateTime = (d) => {
+    const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
+    const dd = pad(d.getDate());
+    const mm = pad(d.getMonth() + 1);
+    const yyyy = d.getFullYear();
+    const hh = pad(d.getHours());
+    const mi = pad(d.getMinutes());
+    return `${dd}/${mm}/${yyyy} ${hh}:${mi}`;
+  };
+
+  const openScheduler = () => {
+    // Pre-cargar con ahora + 1h
+    const now = new Date();
+    now.setMinutes(now.getMinutes() + 60);
+    const tzAdjusted = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+      .toISOString()
+      .slice(0, 16); // yyyy-MM-ddTHH:mm
+    setScheduleValue(tzAdjusted);
+    setShowScheduler(true);
+  };
+
+  const confirmSchedule = async () => {
+    if (!me || !id || !scheduleValue) return;
+    const [datePart, timePart] = scheduleValue.split("T");
+    const [y, m, d] = datePart.split("-").map((x) => parseInt(x, 10));
+    const [hh, mm] = timePart.split(":").map((x) => parseInt(x, 10));
+    const when = new Date(y, m - 1, d, hh, mm, 0);
+
+    const textMsg = `📅 Reunión propuesta: ${formatDateTime(when)}`;
+    const payload = {
+      fromUid: me.uid,
+      text: textMsg,
+      type: "schedule",
+      eventAt: Timestamp.fromDate(when),
+      sentAt: serverTimestamp(),
+    };
+
+    await addDoc(collection(db, "conversations", id, "messages"), payload);
+    await setDoc(
+      doc(db, "conversations", id),
+      { lastMessageText: textMsg, lastMessageAt: serverTimestamp() },
+      { merge: true }
+    );
+    setShowScheduler(false);
+  };
+
+  // Buscar si ya existe respuesta para una propuesta
+  const getDecisionFor = (proposalId) =>
+    messages.find((x) => x.type === "schedule_response" && x.refId === proposalId);
+
+  // Acciones sobre una propuesta (aceptar / rechazar / cancelar)
+  const updateScheduleStatus = async (msg, status) => {
+    if (!id || !msg?.id) return;
+    try {
+      // Intentar actualizar el mensaje original (si las reglas lo permiten)
+      const msgRef = doc(db, "conversations", id, "messages", msg.id);
+      await setDoc(
+        msgRef,
+        { status, decidedBy: me?.uid || null, decidedAt: serverTimestamp() },
+        { merge: true }
+      );
+
+      let lastText = msg.text;
+      if (status === "accepted") lastText = `${msg.text} (aceptada)`;
+      if (status === "rejected") lastText = `${msg.text} (rechazada)`;
+      await setDoc(
+        doc(db, "conversations", id),
+        { lastMessageText: lastText, lastMessageAt: serverTimestamp() },
+        { merge: true }
+      );
+
+      // Crear evento en calendario para ambos usuarios cuando se acepta
+      if (status === "accepted") {
+        try {
+          await createCalendarEventFromSchedule({ conversationId: id, proposalMessageId: msg.id });
+        } catch (e2) {
+          console.error('No se pudo crear el evento de calendario:', e2);
+        }
+      }
+    } catch (e) {
+      // Fallback: crear un mensaje de respuesta (no modifica el original)
+      const responseText =
+        status === "accepted"
+          ? "✅ Reunión aceptada"
+          : "❌ Reunión cancelada";
+      const payload = {
+        fromUid: me?.uid,
+        type: "schedule_response",
+        refId: msg.id,
+        status,
+        eventAt: msg.eventAt || null,
+        text: responseText,
+        sentAt: serverTimestamp(),
+      };
+      await addDoc(collection(db, "conversations", id, "messages"), payload);
+      await setDoc(
+        doc(db, "conversations", id),
+        { lastMessageText: responseText, lastMessageAt: serverTimestamp() },
+        { merge: true }
+      );
+
+      if (status === "accepted") {
+        try {
+          await createCalendarEventFromSchedule({ conversationId: id, proposalMessageId: msg.id });
+        } catch (e3) {
+          console.error('No se pudo crear el evento de calendario:', e3);
+        }
+      }
+    }
+  };
+
   if (!id) {
+    return <Navigate to="/likes" replace />;
+    const convById = new Map(conversations.map((c) => [c.id, c]));
+    const matchById = new Map((matches || []).map((m) => [m.id, m]));
+    const allIds = Array.from(new Set([
+      ...Array.from(convById.keys()),
+      ...Array.from(matchById.keys()),
+    ]));
+    const items = allIds
+      .map((cid) => {
+        const c = convById.get(cid);
+        const m = matchById.get(cid);
+        const lastAt = c?.lastMessageAt?.toMillis?.() || 0;
+        const createdAt = m?.createdAt?.toMillis?.() || 0;
+        return {
+          id: cid,
+          other: m?.other,
+          lastMessageText: c?.lastMessageText || 'Sin mensajes aun',
+          sortTs: lastAt || createdAt || 0,
+        };
+      })
+      .sort((a, b) => b.sortTs - a.sortTs);
     return (
       <div className="chat-list">
         <header className="chat-header">
@@ -108,19 +248,18 @@ function Chat() {
           <div className="title">CHATS</div>
         </header>
         {loadingMatches && <div className="info">Cargando...</div>}
-        {!loadingMatches && conversations.length === 0 && (
+        {!loadingMatches && items.length === 0 && (
           <div className="info">Aún no tienes conversaciones.</div>
         )}
         <div className="chat-items">
-          {conversations.map((c) => {
-            const m = matches.find((x) => x.id === c.id);
-            const otherUser = m?.other;
+          {items.map((it) => {
+            const otherUser = it.other;
             return (
-              <div key={c.id} className="chat-item" onClick={() => navigate(`/chat/${c.id}`)}>
+              <div key={it.id} className="chat-item" onClick={() => navigate(`/chat/${it.id}`)}>
                 <img className="avatar" src={otherUser?.fotoUrl || "https://via.placeholder.com/56"} alt={otherUser?.nombre || 'usuario'} />
                 <div className="chat-item-body">
                   <div className="name">{otherUser?.nombre || 'Usuario'}</div>
-                  <div className="preview">{c.lastMessageText || 'Sin mensajes aún'}</div>
+                  <div className="preview">{it.lastMessageText || 'Sin mensajes aún'}</div>
                 </div>
               </div>
             );
@@ -133,7 +272,7 @@ function Chat() {
   return (
     <div className="chat-view">
       <header className="chat-topbar">
-        <button className="back" onClick={() => navigate("/chat")}>‹</button>
+        <button className="back" onClick={() => navigate("/chat")}>&lt;</button>
         <img className="avatar" src={other?.fotoUrl || "https://via.placeholder.com/32"} alt={other?.nombre || 'usuario'} />
         <div className="name">{other?.nombre || 'Chat'}</div>
       </header>
@@ -141,10 +280,42 @@ function Chat() {
       <div className="chat-messages">
         {messages.map((m) => {
           const mine = m.fromUid === me?.uid;
+          const isSchedule = m.type === "schedule";
+          const decision = isSchedule ? getDecisionFor(m.id) : null;
           return (
             <div key={m.id} className={`bubble ${mine ? 'right' : 'left'}`}>
-              {!mine && <img className="bubble-avatar" src={other?.fotoUrl || "https://via.placeholder.com/28"} alt="avatar" />}
-              <div className="text">{m.text}</div>
+              {!mine && (
+                <img
+                  className="bubble-avatar"
+                  src={other?.fotoUrl || "https://via.placeholder.com/28"}
+                  alt="avatar"
+                />
+              )}
+              <div className="text">
+                {m.text}
+                {isSchedule && (
+                  <div className="schedule-meta">
+                    {(m.status === "accepted" || decision?.status === "accepted") && (
+                      <span className="ok">Confirmada ✅</span>
+                    )}
+                    {(m.status === "rejected" || decision?.status === "rejected") && (
+                      <span className="no">Rechazada ❌</span>
+                    )}
+                    {!m.status && !decision && (
+                      <div className="schedule-actions">
+                        {mine ? (
+                          <button className="btn-reject" onClick={() => updateScheduleStatus(m, "rejected")}>Cancelar</button>
+                        ) : (
+                          <>
+                            <button className="btn-accept" onClick={() => updateScheduleStatus(m, "accepted")}>Aceptar</button>
+                            <button className="btn-reject" onClick={() => updateScheduleStatus(m, "rejected")}>Rechazar</button>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           );
         })}
@@ -152,15 +323,36 @@ function Chat() {
       </div>
 
       <div className="chat-input">
-        <button className="plus">+</button>
+        <button className="plus" title="Más">+</button>
+        <button className="schedule" title="Agendar reunión" onClick={openScheduler}>📅</button>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Escribe un mensaje"
           onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
         />
-        <button className="send" disabled={!canSend} onClick={send}>➤</button>
+        <button className="send" disabled={!canSend} onClick={send}>→</button>
       </div>
+
+      {showScheduler && (
+        <div className="modal-overlay" onClick={() => setShowScheduler(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-title">Agendar reunión</div>
+            <label className="modal-label">Fecha y hora</label>
+            <input
+              className="modal-datetime"
+              type="datetime-local"
+              value={scheduleValue}
+              onChange={(e) => setScheduleValue(e.target.value)}
+              min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
+            />
+            <div className="modal-actions">
+              <button className="btn-cancel" onClick={() => setShowScheduler(false)}>Cancelar</button>
+              <button className="btn-confirm" onClick={confirmSchedule}>Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

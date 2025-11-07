@@ -21,6 +21,7 @@ const authRoutes = require('./routes/authRoutes');
 const usersRoutes = require('./routes/usersRoutes');
 const publicationsRoutes = require('./routes/publicationsRoutes');
 const interactionsRoutes = require('./routes/interactionsRoutes');
+const calendarRoutes = require('./routes/calendarRoutes');
 
 // --- Registro de Endpoints ---
 // Asocia cada módulo de rutas con su prefijo de URL base.
@@ -28,6 +29,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/users", usersRoutes);
 app.use("/api/publications", publicationsRoutes);
 app.use("/api/interactions", interactionsRoutes);
+app.use("/api/calendar", calendarRoutes);
 
 // --- Ruta de Verificación de Salud ---
 // Un endpoint simple para confirmar que el servidor está en línea.

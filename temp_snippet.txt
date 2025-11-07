@@ -1,0 +1,40 @@
+    }
+  };
+
+  if (!id) {
+    return (
+      <div className="chat-list">
+        <header className="chat-header">
+          <div className="brand">S</div>
+          <div className="title">CHATS</div>
+        </header>
+        {loadingMatches && <div className="info">Cargando...</div>}
+        {!loadingMatches && conversations.length === 0 && (
+          <div className="info">Aún no tienes conversaciones.</div>
+        )}
+        <div className="chat-items">
+          {conversations.map((c) => {
+            const m = matches.find((x) => x.id === c.id);
+            const otherUser = m?.other;
+            return (
+              <div key={c.id} className="chat-item" onClick={() => navigate(`/chat/${c.id}`)}>
+                <img className="avatar" src={otherUser?.fotoUrl || "https://via.placeholder.com/56"} alt={otherUser?.nombre || 'usuario'} />
+                <div className="chat-item-body">
+                  <div className="name">{otherUser?.nombre || 'Usuario'}</div>
+                  <div className="preview">{c.lastMessageText || 'Sin mensajes aún'}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="chat-view">
+      <header className="chat-topbar">
+        <button className="back" onClick={() => navigate("/chat")}>&lt;</button>
+        <img className="avatar" src={other?.fotoUrl || "https://via.placeholder.com/32"} alt={other?.nombre || 'usuario'} />
+        <div className="name">{other?.nombre || 'Chat'}</div>
+      </header>
