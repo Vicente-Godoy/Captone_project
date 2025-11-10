@@ -40,3 +40,23 @@
 .home__content {
     padding-top: 6px;
 }
+
+.home__refresh-btn {
+    border: 1px solid #d0d0d0;
+    background: #fff;
+    border-radius: 20px;
+    padding: 6px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.home__refresh-btn:hover:not(:disabled) {
+    background: #f0f0f0;
+    transform: translateY(-1px);
+}
+
+.home__refresh-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -31,7 +31,7 @@ export default function SyncButton() {
                 fontSize: '14px'
             }}
         >
-            {loading ? 'Sincronizando...' : '🔄 Sincronizar Usuario'}
+            {loading ? 'Sincronizando...' : 'Sincronizar Usuario'}
         </button>
     );
 }

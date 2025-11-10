@@ -122,7 +122,6 @@ const getMyEvents = async (req, res) => {
   try {
     const uid = req.user?.uid;
     if (!uid) return res.status(401).json({ error: 'No autorizado' });
-    const now = admin.firestore.Timestamp.now();
     // Evitar requerir índices compuestos: ordenar por fecha y filtrar en memoria
     const snap = await db
       .collection('users')

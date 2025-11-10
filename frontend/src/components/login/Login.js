@@ -56,9 +56,7 @@ function Login({ onLogin }) {
       <div className="card">
         <form onSubmit={handleSubmit} className="login-form">
           <div className="input-wrap">
-            <span className="icon" aria-hidden>
-              •
-            </span>
+            <span className="icon" aria-hidden>-</span>
             <input
               type="email"
               placeholder="Email"
@@ -69,9 +67,7 @@ function Login({ onLogin }) {
           </div>
 
           <div className="input-wrap">
-            <span className="icon" aria-hidden>
-              •
-            </span>
+            <span className="icon" aria-hidden>-</span>
             <input
               type="password"
               placeholder="Password"

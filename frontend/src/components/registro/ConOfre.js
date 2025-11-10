@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./conofre.css";
 
-// 👇 usamos el contexto del flujo de registro
+// Usamos el contexto del flujo de registro
 import { useRegistroFlow } from "./RegistroFlow";
 
 export default function ConOfre() {
@@ -32,7 +32,7 @@ export default function ConOfre() {
     <div className="co-page">
       <header className="co-header">
         <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">
-          ‹
+          {"<"}
         </button>
         <h1 className="co-title">¿QUÉ LE OFRECES A<br />SKILLSWAPP?</h1>
       </header>

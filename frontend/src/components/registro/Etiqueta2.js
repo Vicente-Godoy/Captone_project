@@ -40,7 +40,7 @@ export default function Etiqueta2() {
           onClick={() => navigate(-1)}
           aria-label="Volver"
         >
-          ‹
+          {"<"}
         </button>
         <h1 className="e2-title">¿QUÉ TEMAS<br />TE INTERESAN?</h1>
       </header>

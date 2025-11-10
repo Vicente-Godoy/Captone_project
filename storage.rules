@@ -1,0 +1,35 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAllowedFolder(folder) {
+      return folder == 'posts' || folder == 'avatars' || folder == 'temp';
+    }
+
+    function isValidImageUpload() {
+      return request.resource != null
+        && request.resource.size <= 20 * 1024 * 1024
+        && request.resource.contentType.matches('image/(png|jpe?g|webp)');
+    }
+
+    match /uploads/{folder}/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isAllowedFolder(folder)
+        && isAuthenticated()
+        && request.auth.uid == userId
+        && isValidImageUpload();
+    }
+
+    match /public/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{path=**} {
+      allow read, write: if false;
+    }
+  }
+}

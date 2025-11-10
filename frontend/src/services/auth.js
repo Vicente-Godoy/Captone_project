@@ -38,7 +38,7 @@ async function syncUserWithBackend(user, maxRetries = 2) {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`🔄 Sincronizando usuario con backend (intento ${attempt}/${maxRetries})`);
+            console.log(`Sincronizando usuario con backend (intento ${attempt}/${maxRetries})`);
 
             const response = await fetch(`${API_BASE}/api/users/me`, {
                 method: 'PUT',
@@ -55,12 +55,12 @@ async function syncUserWithBackend(user, maxRetries = 2) {
             }
 
             const result = await response.json();
-            console.log('✅ Usuario sincronizado exitosamente:', result);
+            console.log('Usuario sincronizado exitosamente:', result);
             return result;
 
         } catch (error) {
             lastError = error;
-            console.error(`❌ Error en intento ${attempt}:`, error.message);
+            console.error(`Error en intento ${attempt}:`, error.message);
 
             if (attempt < maxRetries) {
                 // Esperar un poco antes del siguiente intento
@@ -70,7 +70,7 @@ async function syncUserWithBackend(user, maxRetries = 2) {
     }
 
     // Si llegamos aquí, todos los intentos fallaron
-    console.error('❌ Falló la sincronización después de todos los intentos');
+    console.error('Falló la sincronización después de todos los intentos');
     throw new Error(`No se pudo sincronizar el usuario: ${lastError.message}`);
 }
 

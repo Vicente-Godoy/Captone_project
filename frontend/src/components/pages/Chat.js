@@ -191,8 +191,8 @@ function Chat() {
       // Fallback: crear un mensaje de respuesta (no modifica el original)
       const responseText =
         status === "accepted"
-          ? "✅ Reunión aceptada"
-          : "❌ Reunión cancelada";
+        ? "Reunión aceptada"
+        : "Reunión cancelada";
       const payload = {
         fromUid: me?.uid,
         type: "schedule_response",
@@ -220,7 +220,6 @@ function Chat() {
   };
 
   if (!id) {
-    return <Navigate to="/likes" replace />;
     const convById = new Map(conversations.map((c) => [c.id, c]));
     const matchById = new Map((matches || []).map((m) => [m.id, m]));
     const allIds = Array.from(new Set([
@@ -296,10 +295,10 @@ function Chat() {
                 {isSchedule && (
                   <div className="schedule-meta">
                     {(m.status === "accepted" || decision?.status === "accepted") && (
-                      <span className="ok">Confirmada ✅</span>
+                      <span className="ok">Confirmada</span>
                     )}
                     {(m.status === "rejected" || decision?.status === "rejected") && (
-                      <span className="no">Rechazada ❌</span>
+                      <span className="no">Rechazada</span>
                     )}
                     {!m.status && !decision && (
                       <div className="schedule-actions">

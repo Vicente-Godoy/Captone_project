@@ -42,7 +42,7 @@ export default function Etiqueta1() {
           onClick={() => navigate(-1)}
           aria-label="Volver"
         >
-          ‹
+          {"<"}
         </button>
         <h1 className="e1-title">DEFINE TU<br />CONOCIMIENTO</h1>
       </header>

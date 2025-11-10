@@ -179,7 +179,7 @@ async function updatePublicacionesWithTags(connection) {
         return acc;
     }, {});
 
-    const batch = db.batch();
+    let batch = db.batch();
     let count = 0;
     for (const pubId in tagsByPubId) {
         const docRef = db.collection('publications').doc(pubId);
@@ -191,7 +191,7 @@ async function updatePublicacionesWithTags(connection) {
             count = 0;
         }
     }
-    if(count > 0) await batch.commit();
+    if (count > 0) await batch.commit();
     console.log(`Actualizadas ${Object.keys(tagsByPubId).length} publicaciones con sus tags.`);
 }
 

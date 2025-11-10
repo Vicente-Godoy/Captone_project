@@ -1,6 +1,12 @@
 // backend/controllers/usersController.js
 const { db } = require('../config/firebase');
 
+const sanitizeInput = (value, { maxLength = 280, allowNull = true } = {}) => {
+  if (value === null && allowNull) return null;
+  if (typeof value !== 'string') return undefined;
+  return value.replace(/[<>]/g, '').trim().slice(0, maxLength);
+};
+
 /**
  * Obtiene el perfil completo del usuario autenticado.
  */
@@ -41,12 +47,12 @@ const updateMyProfile = async (req, res) => {
     // Solo incluimos lo que venga en el body; además podemos rellenar nombre/email desde el token.
     const updateData = {
       // datos del body (opcionales)
-      ...(typeof nombre !== 'undefined' && { nombre }),
-      ...(typeof bio !== 'undefined' && { bio }),
-      ...(typeof fotoUrl !== 'undefined' && { fotoUrl }),
-      ...(typeof ciudad !== 'undefined' && { ciudad }),
-      ...(typeof region !== 'undefined' && { region }),
-      ...(typeof email !== 'undefined' && { email }),
+      ...(typeof nombre !== 'undefined' && { nombre: sanitizeInput(nombre, { maxLength: 80 }) }),
+      ...(typeof bio !== 'undefined' && { bio: sanitizeInput(bio, { maxLength: 400 }) }),
+      ...(typeof fotoUrl !== 'undefined' && { fotoUrl: sanitizeInput(fotoUrl, { maxLength: 500 }) }),
+      ...(typeof ciudad !== 'undefined' && { ciudad: sanitizeInput(ciudad, { maxLength: 120 }) }),
+      ...(typeof region !== 'undefined' && { region: sanitizeInput(region, { maxLength: 120 }) }),
+      ...(typeof email !== 'undefined' && { email: sanitizeInput(email, { maxLength: 254, allowNull: false }) }),
 
       // fallback desde el token si aún no existe el doc
       ...(!prev.exists && (authEmail || authName) && {
@@ -64,7 +70,7 @@ const updateMyProfile = async (req, res) => {
       updateData.minimal = true;
     }
 
-    // 👇 upsert seguro: crea si no existe, actualiza si existe
+    // El upsert crea si no existe y actualiza si existe
     await userRef.set(updateData, { merge: true });
 
     const snap = await userRef.get();
