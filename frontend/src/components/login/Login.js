@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./login.css";
-import { loginWithPassword } from "../../services/auth"; // solo login
+import { loginWithPassword, loginWithGoogle } from "../../services/auth"; // solo login
 
 function Login({ onLogin }) {
   const [user, setUser] = useState("");
@@ -92,6 +92,28 @@ function Login({ onLogin }) {
               disabled={loading || !user || !pass}
             >
               {loading ? "Ingresando..." : "Ingresar"}
+            </button>
+
+            <button
+              type="button"
+              className="btn-pill google"
+              onClick={async () => {
+                setErr("");
+                try {
+                  setLoading(true);
+                  await loginWithGoogle();
+                  onLogin?.(true);
+                  navigate("/");
+                } catch (e) {
+                  console.error(e);
+                  setErr(e.message || "No se pudo iniciar sesión con Google.");
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              disabled={loading}
+            >
+              {loading ? "Procesando..." : "Continuar con Google"}
             </button>
 
             {/* Solo redirige al wizard de registro */}

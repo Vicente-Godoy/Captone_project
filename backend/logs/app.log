@@ -1,0 +1,95 @@
+2025-11-15T19:03:38.258Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T19:12:00.294Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T19:19:14.393Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T20:33:13.652Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T20:41:35.864Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T20:45:56.229Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T20:56:17.366Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T21:26:17.253Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T21:38:40.883Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T21:48:04.412Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T22:12:14.014Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T22:14:25.218Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T22:15:30.423Z - INFO - PUT /api/users/me {"requestId":"12fcf0f3-3892-45d2-90bb-83987c80d6ac","statusCode":200,"durationMs":1101,"ip":"::ffff:127.0.0.1","user":"4n6aI44do0QvM3jLYMUxhYRSe9H3"}
+2025-11-15T22:23:28.758Z - INFO - Backend corriendo en http://localhost:5000
+2025-11-15T22:23:54.615Z - INFO - GET /api/publications {"requestId":"ee5a1d44-85f5-4891-880e-5365b8240fe5","statusCode":304,"durationMs":556,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:23:54.656Z - INFO - GET /api/publications {"requestId":"310fe88b-6b39-4cd3-b000-a2dda533d421","statusCode":200,"durationMs":288,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:23:54.997Z - INFO - PUT /api/users/me {"requestId":"d308f74f-c796-4426-8aee-ad4add74624a","statusCode":200,"durationMs":449,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:24:04.988Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"11be70ed-c244-4f25-be2f-745312a437ea","statusCode":200,"durationMs":17,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:24:05.001Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"45e030d1-c16e-4d3d-b374-42382c3bc91c","statusCode":304,"durationMs":43,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:24:05.052Z - INFO - GET /api/publications {"requestId":"9921e737-d945-4a37-9c98-99a92cbaaec0","statusCode":200,"durationMs":80,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:24:05.083Z - INFO - GET /api/publications {"requestId":"b079f75c-d9a7-41d4-97d8-12287b87989e","statusCode":304,"durationMs":127,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:24:20.409Z - INFO - GET /api/interactions/matches {"requestId":"fcd59c6b-eb5a-483b-b500-dca68251d3fb","statusCode":200,"durationMs":46,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:24:20.434Z - INFO - GET /api/interactions/matches {"requestId":"030b30f9-3ea2-46b6-bf36-4bfc015b92e6","statusCode":304,"durationMs":21,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:24:20.467Z - INFO - GET /api/interactions/matches {"requestId":"ef1ff190-15d1-45a7-a333-10cc9f77521b","statusCode":304,"durationMs":31,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:24:20.503Z - INFO - GET /api/interactions/matches {"requestId":"1ac2e331-c02c-4a65-a0ef-b26465980576","statusCode":304,"durationMs":35,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:24:21.997Z - INFO - GET /api/interactions/matches {"requestId":"0e4b3ebc-f914-4120-a061-45165235a35f","statusCode":304,"durationMs":27,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:24:22.019Z - INFO - GET /api/interactions/matches {"requestId":"c757b2da-4f1d-4a1a-a373-70cbfb07fd33","statusCode":304,"durationMs":21,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:26:45.088Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"03bab6c7-590a-4c38-a548-082799623558","statusCode":304,"durationMs":55,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:26:45.151Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"986dab65-a739-4a06-899e-df957165155b","statusCode":200,"durationMs":93,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:26:45.177Z - INFO - GET /api/publications {"requestId":"ea419299-5bb5-48c5-9510-9b5e5c21cead","statusCode":304,"durationMs":143,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:26:45.200Z - INFO - GET /api/publications {"requestId":"46a84684-8af4-4083-873b-b9f601c6a42c","statusCode":200,"durationMs":140,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:27:21.811Z - INFO - GET /api/calendar/events {"requestId":"612df7ce-69bb-4304-900d-46377420358a","statusCode":200,"durationMs":264,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:30.002Z - INFO - DELETE /api/publications/0XiALQnKpjcrP6iyXBsV {"requestId":"56159a7d-94f9-460a-afaa-699272bd233c","statusCode":200,"durationMs":291,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:32.562Z - INFO - DELETE /api/publications/HDC62lVKB8KXtMP1CVWu {"requestId":"75f6a4e6-491e-4756-82c0-ef9113c6c15e","statusCode":200,"durationMs":173,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:40.141Z - INFO - GET /api/calendar/events {"requestId":"11d63f5b-9476-426c-869d-d731510b58e2","statusCode":304,"durationMs":203,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:41.097Z - INFO - GET /api/calendar/events {"requestId":"06c5eb53-89ba-4987-9b33-8d0cf87edb1d","statusCode":304,"durationMs":56,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:49.853Z - INFO - GET /api/interactions/matches {"requestId":"4a7ecc60-ae20-44d3-9652-5e95ca084289","statusCode":304,"durationMs":45,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:49.905Z - INFO - GET /api/interactions/matches {"requestId":"cbd8e6b4-e110-42bb-b05f-e3a0fc49e0b3","statusCode":304,"durationMs":50,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:49.940Z - INFO - GET /api/interactions/matches {"requestId":"51ae8255-d67c-4bed-947a-38c53f17d0c0","statusCode":304,"durationMs":34,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:49.969Z - INFO - GET /api/interactions/matches {"requestId":"02a3e5f0-a049-4a1d-a80e-d89fdb555cb5","statusCode":304,"durationMs":28,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:52.366Z - INFO - GET /api/interactions/matches {"requestId":"04cecc93-b056-47f0-8951-276c6728f26d","statusCode":304,"durationMs":46,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:52.411Z - INFO - GET /api/interactions/matches {"requestId":"67722476-a622-4006-8ff2-de0a420887d0","statusCode":304,"durationMs":44,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:54.954Z - INFO - GET /api/interactions/matches {"requestId":"4901ce19-f3b2-4f03-b540-d13d7180d17e","statusCode":304,"durationMs":28,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:54.986Z - INFO - GET /api/interactions/matches {"requestId":"dec79d00-ac28-483c-bf45-1b1dddb3c941","statusCode":304,"durationMs":31,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:27:58.554Z - INFO - GET /api/publications {"requestId":"a2861e3b-4728-4ce6-b788-0574b2d5a44a","statusCode":200,"durationMs":83,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:27:58.580Z - INFO - GET /api/publications {"requestId":"5432a293-31b6-4b3b-9e4b-df1c240f9f2d","statusCode":200,"durationMs":86,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:29:13.037Z - INFO - GET /api/interactions/matches {"requestId":"484933d7-a4c9-44df-b038-afec06094320","statusCode":304,"durationMs":90,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:13.088Z - INFO - GET /api/interactions/matches {"requestId":"4a92682f-85f8-47d6-a06a-cb9a7b3326a3","statusCode":304,"durationMs":50,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:22.337Z - INFO - GET /api/interactions/matches {"requestId":"655ef075-ed43-4141-a6eb-0956b11e1d52","statusCode":304,"durationMs":84,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:22.544Z - INFO - GET /api/interactions/matches {"requestId":"6c500e9a-321c-4447-a52a-a95507ada797","statusCode":304,"durationMs":205,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:22.581Z - INFO - GET /api/interactions/matches {"requestId":"1b1a7075-e5a3-4570-9cda-35a561b38ec1","statusCode":304,"durationMs":35,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:22.613Z - INFO - GET /api/interactions/matches {"requestId":"94d94f5d-8608-4408-8b09-61571fa6f4be","statusCode":304,"durationMs":31,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:32.651Z - INFO - GET /api/interactions/matches {"requestId":"6d85045b-1f9a-4efd-b475-1132701c7f3c","statusCode":304,"durationMs":31,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:32.684Z - INFO - GET /api/interactions/matches {"requestId":"57df7723-76c8-431c-b810-4b5496ac4cf7","statusCode":304,"durationMs":32,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:37.170Z - INFO - GET /api/interactions/matches {"requestId":"81008a7a-5f7d-4ae5-b1d7-b609dbaecce7","statusCode":304,"durationMs":27,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:37.215Z - INFO - GET /api/interactions/matches {"requestId":"2ecbadd1-4286-496f-8a9a-8eb80adbc93c","statusCode":304,"durationMs":44,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:37.248Z - INFO - GET /api/interactions/matches {"requestId":"f18b5b12-533d-4de8-abb5-09fb32cb441f","statusCode":304,"durationMs":32,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:29:42.852Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"633b2b50-6500-4dd6-8325-c992c60ca835","statusCode":304,"durationMs":38,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:29:42.854Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"dd14b8cf-b256-4c0c-854e-f9b1a920b991","statusCode":200,"durationMs":37,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:29:42.890Z - INFO - GET /api/publications {"requestId":"74bbb6a7-b0c4-4983-8976-958229ec5b37","statusCode":304,"durationMs":75,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:29:42.918Z - INFO - GET /api/publications {"requestId":"e83acb02-f26d-49fc-81fe-f971a21c76c8","statusCode":200,"durationMs":100,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:30:02.980Z - INFO - GET /api/publications {"requestId":"decdc3dd-caa3-4825-96a0-b65958af9f1b","statusCode":304,"durationMs":62,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:30:03.011Z - INFO - GET /api/publications {"requestId":"7f710984-0dd2-4489-9038-0337909dbe6e","statusCode":200,"durationMs":92,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:05.422Z - INFO - GET /api/publications {"requestId":"ba54227e-41dc-46c1-ad1f-ed0b566042fa","statusCode":200,"durationMs":199,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:05.449Z - INFO - GET /api/publications {"requestId":"bf16500f-1137-4acc-981f-ae546cec044d","statusCode":304,"durationMs":243,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:13.486Z - INFO - GET /api/interactions/matches {"requestId":"47d3f214-03ca-4f5a-9c84-ab31c0e1feb5","statusCode":304,"durationMs":118,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:13.529Z - INFO - GET /api/interactions/matches {"requestId":"a2cc6210-f14b-4861-bf8b-fe1fc87f5675","statusCode":304,"durationMs":42,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:15.043Z - INFO - GET /api/interactions/matches {"requestId":"0f358f24-fa01-47a4-a9fd-dceed8922d78","statusCode":304,"durationMs":36,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:15.091Z - INFO - GET /api/interactions/matches {"requestId":"6219630c-6a99-4071-99e8-66fe93a19957","statusCode":304,"durationMs":46,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:15.146Z - INFO - GET /api/interactions/matches {"requestId":"abc20f01-b9f3-4212-8821-7fc3ed2803f0","statusCode":304,"durationMs":54,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:15.192Z - INFO - GET /api/interactions/matches {"requestId":"58aeab95-d7ed-42ce-820d-1b0d0b964ca7","statusCode":304,"durationMs":42,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:16.730Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"9fd0063e-2625-424b-9b35-b14103e2e858","statusCode":304,"durationMs":32,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:16.737Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"e87e4906-8dc9-4a2b-a995-5ed5f270096c","statusCode":200,"durationMs":29,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:16.761Z - INFO - GET /api/publications {"requestId":"ea77daea-da11-44b7-879d-54d6cb3a9496","statusCode":200,"durationMs":53,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:16.786Z - INFO - GET /api/publications {"requestId":"8afa661b-9b60-4a03-a156-83631b0d2091","statusCode":304,"durationMs":88,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:19.050Z - INFO - GET /api/publications {"requestId":"692a80be-048d-4d07-abee-793b805b5a84","statusCode":304,"durationMs":70,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:19.076Z - INFO - GET /api/publications {"requestId":"a460aee8-9df2-470e-84c4-843bd9390f5e","statusCode":200,"durationMs":95,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:22.504Z - INFO - GET /api/interactions/matches {"requestId":"1615b5f3-f019-4a67-bfc8-343ff855ef4f","statusCode":304,"durationMs":45,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:22.538Z - INFO - GET /api/interactions/matches {"requestId":"bdc49034-22a2-47f2-b310-0bb2e2fc3969","statusCode":304,"durationMs":33,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:24.005Z - INFO - GET /api/interactions/matches {"requestId":"41cab16e-7ae9-4ce2-9585-f8d533274bc6","statusCode":304,"durationMs":38,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:24.035Z - INFO - GET /api/interactions/matches {"requestId":"0c34f185-6117-4896-bfd0-54591e552788","statusCode":304,"durationMs":29,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:24.066Z - INFO - GET /api/interactions/matches {"requestId":"700ce7bb-f103-45c0-b02c-832a8cb6db1d","statusCode":304,"durationMs":30,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:24.097Z - INFO - GET /api/interactions/matches {"requestId":"066c3963-87e9-448f-9c32-d3373c7f47dc","statusCode":304,"durationMs":29,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:25.556Z - INFO - GET /api/publications {"requestId":"93f5b584-340b-49e1-afd7-f69b12b4e9d1","statusCode":304,"durationMs":48,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:25.560Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"a26ddfc4-edbe-45bf-8ca8-3d1f0c640270","statusCode":304,"durationMs":53,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:25.564Z - INFO - GET /api/users/MEjjAACE12Xa4jOLSaHCvv1FiXo2 {"requestId":"1c80f817-739e-491f-9b64-a447c2757ec6","statusCode":200,"durationMs":46,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:25.584Z - INFO - GET /api/publications {"requestId":"4dd95157-93c7-4c3d-b0ae-42e528090dd9","statusCode":200,"durationMs":66,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:27.592Z - INFO - GET /api/interactions/matches {"requestId":"f4fb6928-724a-4428-a501-ded62bcf3a59","statusCode":304,"durationMs":38,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:27.621Z - INFO - GET /api/interactions/matches {"requestId":"fd1b8b3a-1c1e-4e8e-9fea-fd5a13fd9ccc","statusCode":304,"durationMs":27,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:27.654Z - INFO - GET /api/interactions/matches {"requestId":"e4c84572-86ad-450d-a944-d2f9eb1a3565","statusCode":304,"durationMs":32,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:27.697Z - INFO - GET /api/interactions/matches {"requestId":"8e3ab5cc-e4bb-4ad2-be6e-5355bbf305c5","statusCode":304,"durationMs":42,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:28.332Z - INFO - GET /api/interactions/matches {"requestId":"4cbca143-f1fc-4218-880d-13ebc63e8df8","statusCode":304,"durationMs":41,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:28.369Z - INFO - GET /api/interactions/matches {"requestId":"fcb3e2f9-6088-4cf5-88bd-d51298280a17","statusCode":304,"durationMs":36,"ip":"::ffff:127.0.0.1","user":"MEjjAACE12Xa4jOLSaHCvv1FiXo2"}
+2025-11-15T22:35:31.882Z - INFO - GET /api/publications {"requestId":"662e9c74-4b54-49d6-b915-65904fa85979","statusCode":304,"durationMs":81,"ip":"::ffff:127.0.0.1","user":null}
+2025-11-15T22:35:31.906Z - INFO - GET /api/publications {"requestId":"a772037e-745b-499b-a778-b89d17c69f4a","statusCode":200,"durationMs":93,"ip":"::ffff:127.0.0.1","user":null}

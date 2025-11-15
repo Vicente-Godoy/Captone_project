@@ -14,7 +14,7 @@ const HabilidadesForm = ({ onCreated }) => {
   const [loadingTipos, setLoadingTipos] = useState(true);
   const [errorLoad, setErrorLoad] = useState("");
 
-  // 🟣 etiqueta de versión para confirmar que este archivo SÍ se cargó
+  // Etiqueta de versión para confirmar que este archivo se cargó
   const VERSION = "Form v3 - diag visible";
 
   useEffect(() => {

@@ -17,3 +17,19 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.app-shell-auth {
+  background: radial-gradient(circle at top, rgba(34, 20, 66, 0.45), transparent 60%),
+    linear-gradient(135deg, #050712, #061a26 60%, #034335);
+  padding-bottom: 120px;
+}
+
+.app-shell-public {
+  background: linear-gradient(135deg, #0a1025, #07162b);
+  padding-bottom: 80px;
+}
+

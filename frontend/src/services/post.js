@@ -1,6 +1,6 @@
 // frontend/src/services/posts.js
 
-// 🔹 Hoy usamos tus mocks:
+// Hoy usamos tus mocks:
 import { POSTS_MOCK } from "../fixtures/postsMock"; // ajusta el nombre si usaste PostsMocks
 
 /**

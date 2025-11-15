@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const { randomUUID } = require("crypto");
 require("dotenv").config();
+const logger = require("./utils/logger");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,6 +16,28 @@ const corsOptions = {
 app.use(cors(corsOptions));
 // Parsea los cuerpos de las peticiones entrantes con formato JSON
 app.use(express.json());
+
+app.use((req, res, next) => {
+  const requestId = randomUUID();
+  const start = Date.now();
+  res.on("finish", () => {
+    logger.info(`${req.method} ${req.originalUrl}`, {
+      requestId,
+      statusCode: res.statusCode,
+      durationMs: Date.now() - start,
+      ip: req.ip,
+      user: req.user?.uid || null,
+    });
+  });
+  res.on("error", (error) => {
+    logger.error("Response error", {
+      requestId,
+      message: error.message,
+    });
+  });
+  req.requestId = requestId;
+  next();
+});
 
 // --- Carga de Rutas ---
 // Se importa los módulos que definen los endpoints de la API.
@@ -38,6 +62,6 @@ app.get("/api/health", (_req, res) => res.json({ status: "ok" }));
 // --- Inicio del Servidor ---
 // Pone al servidor a escuchar peticiones en el puerto especificado.
 app.listen(PORT, () => {
-  console.log(`Backend corriendo en http://localhost:${PORT}`);
+  logger.info(`Backend corriendo en http://localhost:${PORT}`);
 });
 

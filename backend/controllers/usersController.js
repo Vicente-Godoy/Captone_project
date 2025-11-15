@@ -64,7 +64,7 @@ const updateMyProfile = async (req, res) => {
       updateData.minimal = true;
     }
 
-    // 👇 upsert seguro: crea si no existe, actualiza si existe
+    // Upsert seguro: crea si no existe, actualiza si existe
     await userRef.set(updateData, { merge: true });
 
     const snap = await userRef.get();
