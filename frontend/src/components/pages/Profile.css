@@ -1,0 +1,228 @@
+.profile-page {
+  min-height: 100vh;
+  padding: 60px 16px 140px;
+  background: radial-gradient(circle at top, rgba(58, 30, 109, 0.65), transparent 60%),
+    radial-gradient(circle at bottom, rgba(0, 193, 134, 0.55), transparent 55%),
+    linear-gradient(140deg, #070913, #0d182d 55%, #034737);
+  display: flex;
+  justify-content: center;
+  color: #f5f7ff;
+}
+
+.profile-card {
+  width: min(760px, 100%);
+  background: rgba(5, 8, 23, 0.85);
+  border-radius: 28px;
+  padding: 30px 28px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(4px);
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-bottom: 24px;
+}
+
+.profile-avatar {
+  width: 110px;
+  height: 110px;
+  border-radius: 30px;
+  object-fit: cover;
+  box-shadow: 0 16px 30px rgba(0, 0, 0, 0.4);
+}
+
+.profile-name {
+  margin: 0;
+  font-size: clamp(26px, 5vw, 32px);
+}
+
+.profile-bio {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.profile-location {
+  margin: 4px 0 0;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.profile-tabs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.profile-tab {
+  border: none;
+  border-radius: 16px;
+  padding: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f7f9ff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.15s ease, background 0.2s ease;
+}
+
+.profile-tab:hover {
+  transform: translateY(-2px);
+}
+
+.profile-tab.is-active {
+  background: linear-gradient(135deg, #00d98a, #1a9c7c);
+  color: #041f16;
+  border-color: transparent;
+  box-shadow: 0 12px 25px rgba(0, 217, 138, 0.35);
+}
+
+.profile-panel {
+    padding: 24px;
+    border-radius: 20px;
+    background: rgba(8, 11, 26, 0.9);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    min-height: 180px;
+    box-shadow: inset 0 15px 35px rgba(0, 0, 0, 0.3);
+    text-align: left;
+}
+
+.profile-posts__state {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.profile-posts__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.profile-posts__item {
+    padding: 12px 14px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+}
+
+.profile-posts__info {
+    flex: 1;
+}
+
+.profile-posts__title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.profile-posts__desc {
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.75);
+}
+
+.profile-posts__more {
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: #f7f9ff;
+    border-radius: 12px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+}
+
+.profile-calendar__list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.profile-calendar__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.profile-calendar__info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-calendar__date {
+  font-weight: 700;
+}
+
+.profile-calendar__other {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.profile-calendar__cancel {
+  background: #ff7a7a;
+  border: none;
+  color: #2c0505;
+  padding: 8px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  box-shadow: 0 8px 18px rgba(255, 122, 122, 0.35);
+}
+
+.profile-calendar__state {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.profile-loading {
+  color: #f7f9ff;
+  text-align: center;
+  padding-top: 80px;
+}
+
+@media (max-width: 640px) {
+  .profile-card {
+    padding: 24px 20px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .profile-avatar {
+    width: 90px;
+    height: 90px;
+  }
+
+  .profile-panel {
+    padding: 18px;
+  }
+
+  .profile-calendar__item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-calendar__cancel {
+    width: 100%;
+    text-align: center;
+  }
+}

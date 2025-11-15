@@ -3,39 +3,42 @@ import { useParams } from "react-router-dom";
 import API_BASE from "../../api";
 import { getAuth } from "firebase/auth";
 import { getMyCalendar, cancelCalendarEvent } from "../../services/calendar";
+import { fetchPublications, deletePublication } from "../../services/publications";
+import { DEFAULT_AVATAR } from "../../utils/placeholders";
+import { toast } from "../../utils/toast";
+import "./Profile.css";
 
 function Profile() {
-  const { id } = useParams(); // ID del perfil desde la URL
+  const { id } = useParams();
   const [perfil, setPerfil] = useState(null);
   const [activeTab, setActiveTab] = useState("publicaciones");
   const [events, setEvents] = useState([]);
   const [loadingEvents, setLoadingEvents] = useState(false);
+  const [posts, setPosts] = useState([]);
+  const [loadingPosts, setLoadingPosts] = useState(true);
   const me = getAuth().currentUser;
   const isMe = !!(me && id && me.uid === id);
 
-  // Helpers para transformar y formatear fechas desde el backend
   const toJSDate = (ts) => {
     if (!ts) return null;
-    if (typeof ts.toDate === 'function') return ts.toDate();
-    if (typeof ts === 'string') {
+    if (typeof ts.toDate === "function") return ts.toDate();
+    if (typeof ts === "string") {
       const d = new Date(ts);
       return isNaN(d.getTime()) ? null : d;
     }
-    // Firestore Timestamp serializado por Admin SDK suele venir como {_seconds, _nanoseconds}
-    if (typeof ts._seconds === 'number') return new Date(ts._seconds * 1000);
-    if (typeof ts.seconds === 'number') return new Date(ts.seconds * 1000);
+    if (typeof ts._seconds === "number") return new Date(ts._seconds * 1000);
+    if (typeof ts.seconds === "number") return new Date(ts.seconds * 1000);
     return null;
   };
 
   const formatDateTime = (d) => {
-    if (!d) return '(sin fecha)';
+    if (!d) return "(sin fecha)";
     const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
     return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
   useEffect(() => {
     if (!id) return;
-    // Traer perfil público desde el endpoint unificado
     fetch(`${API_BASE}/api/users/${id}`)
       .then((res) => {
         if (!res.ok) throw new Error(`Error ${res.status}`);
@@ -46,8 +49,44 @@ function Profile() {
   }, [id]);
 
   useEffect(() => {
-    if (!isMe) return;
-    if (activeTab !== 'calendario') return;
+    let active = true;
+    const loadPosts = async () => {
+      try {
+        setLoadingPosts(true);
+        const all = await fetchPublications();
+        if (!active) return;
+        const mine = (all || []).filter(
+          (p) => p.creatorId === id || p.authorUid === id
+        );
+        setPosts(mine);
+      } catch (e) {
+        console.error("Error cargando publicaciones del perfil:", e);
+        if (active) setPosts([]);
+      } finally {
+        if (active) setLoadingPosts(false);
+      }
+    };
+    loadPosts();
+    return () => {
+      active = false;
+    };
+  }, [id]);
+
+  const handleDeletePost = async (postId) => {
+    const ok = window.confirm('¿Eliminar esta publicación?');
+    if (!ok) return;
+    try {
+      await deletePublication(postId);
+      setPosts((prev) => prev.filter((p) => p.id !== postId));
+      toast.success('Publicación eliminada');
+    } catch (err) {
+      console.error('No se pudo eliminar la publicación:', err);
+      toast.error('No se pudo eliminar la publicación');
+    }
+  };
+
+  useEffect(() => {
+    if (!isMe || activeTab !== "calendario") return;
     let cancel = false;
     (async () => {
       try {
@@ -56,53 +95,88 @@ function Profile() {
         if (!cancel) setEvents(data || []);
       } catch (e) {
         if (!cancel) setEvents([]);
-        console.error('Error cargando calendario:', e);
+        console.error("Error cargando calendario:", e);
       } finally {
         if (!cancel) setLoadingEvents(false);
       }
     })();
-    return () => { cancel = true; };
+    return () => {
+      cancel = true;
+    };
   }, [activeTab, isMe]);
 
   const renderContent = () => {
     switch (activeTab) {
       case "publicaciones":
-        return <div style={styles.content}>Aquí se mostrarán las publicaciones.</div>;
+        return (
+          <div className="profile-panel profile-posts">
+            {loadingPosts && <p className="profile-posts__state">Cargando publicaciones...</p>}
+            {!loadingPosts && posts.length === 0 && (
+              <p className="profile-posts__state">Este usuario aún no tiene publicaciones.</p>
+            )}
+            {!loadingPosts && posts.length > 0 && (
+              <ul className="profile-posts__list">
+                {posts.map((post) => (
+                  <li key={post.id} className="profile-posts__item">
+                    <div className="profile-posts__info">
+                      <div className="profile-posts__title">{post.title || post.titulo}</div>
+                      {post.descripcion && (
+                        <div className="profile-posts__desc">{post.descripcion}</div>
+                      )}
+                    </div>
+                    {isMe && (
+                      <button
+                        className="profile-posts__more"
+                        onClick={() => handleDeletePost(post.id)}
+                        title="Eliminar publicación"
+                      >
+                        &#8942;
+                      </button>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        );
       case "fotos":
-        return <div style={styles.content}>Aquí se mostrarán las fotos.</div>;
+        return <div className="profile-panel">Aquí se mostrarán las fotos.</div>;
       case "calendario":
         return (
-          <div style={styles.content}>
-            {loadingEvents && <div>Cargando eventos...</div>}
-            {!loadingEvents && events.length === 0 && <div>No tienes eventos agendados.</div>}
+          <div className="profile-panel profile-calendar">
+            {loadingEvents && <div className="profile-calendar__state">Cargando eventos...</div>}
+            {!loadingEvents && events.length === 0 && <div className="profile-calendar__state">No tienes eventos agendados.</div>}
             {!loadingEvents && events.length > 0 && (
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <ul className="profile-calendar__list">
                 {events.map((ev) => {
                   const d = toJSDate(ev.startAt);
                   const when = formatDateTime(d);
                   const isFuture = d ? d.getTime() > Date.now() - 60_000 : false;
                   return (
-                    <li key={ev.id} style={{ padding: '10px 0', borderBottom: '1px solid #eee', textAlign: 'left', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10 }}>
-                      <div>
-                        <div style={{ fontWeight: 700 }}>{when}</div>
-                        {ev.other?.nombre && <div style={{ fontSize: 13, color: '#555' }}>Con: {ev.other.nombre}</div>}
+                    <li key={ev.id} className="profile-calendar__item">
+                      <div className="profile-calendar__info">
+                        <div className="profile-calendar__date">{when}</div>
+                        {ev.other?.nombre && (
+                          <div className="profile-calendar__other">Con: {ev.other.nombre}</div>
+                        )}
                       </div>
                       {isFuture && (
                         <button
+                          className="profile-calendar__cancel"
                           onClick={async () => {
-                            const otherName = ev.other?.nombre || 'el otro usuario';
-                            const ok = window.confirm(`¿Cancelar esta reunión con ${otherName}?\nEsto la quitará del calendario de ambos.`);
+                            const otherName = ev.other?.nombre || "el otro usuario";
+                            const ok = window.confirm(
+                              `¿Cancelar esta reunión con ${otherName}?\nEsto la quitará del calendario de ambos.`
+                            );
                             if (!ok) return;
                             try {
                               await cancelCalendarEvent(ev.id);
-                              // recargar lista
                               const data = await getMyCalendar();
                               setEvents(data || []);
                             } catch (e) {
-                              console.error('No se pudo cancelar', e);
+                              console.error("No se pudo cancelar", e);
                             }
                           }}
-                          style={{ background: '#9b1c1c', color: '#fff', border: 'none', borderRadius: 6, padding: '6px 10px', cursor: 'pointer' }}
                         >
                           Cancelar
                         </button>
@@ -115,126 +189,67 @@ function Profile() {
           </div>
         );
       case "resenas":
-        return <div style={styles.content}>Aquí se mostrarán las reseñas.</div>;
+        return <div className="profile-panel">Aquí se mostrarán las reseñas.</div>;
       default:
         return null;
     }
   };
 
-  if (!perfil) return <p>Cargando perfil...</p>;
+  if (!perfil) return <p className="profile-loading">Cargando perfil...</p>;
 
   return (
-    <div style={styles.container}>
-      {/* Encabezado con foto y nombre */}
-      <div style={styles.header}>
-        <img
-          src={perfil.fotoUrl || "https://via.placeholder.com/80"}
-          alt="Perfil"
-          style={styles.profileImage}
-        />
-        <div>
-          <h2 style={styles.name}>{perfil.nombre}</h2>
-          {perfil.bio && (
-            <p style={{ margin: 0, fontSize: "14px", color: "#555" }}>
-              {perfil.bio}
-            </p>
-          )}
-          {(perfil.ciudad || perfil.region) && (
-            <p style={{ margin: 0, fontSize: "12px", color: "#777" }}>
-              {[perfil.ciudad, perfil.region].filter(Boolean).join(", ")}
-            </p>
-          )}
-        </div>
-      </div>
-
-      {/* Barra de tabs */}
-      <div style={styles.tabBar}>
-        <div
-          style={activeTab === "publicaciones" ? { ...styles.tab, ...styles.activeTab } : styles.tab}
-          onClick={() => setActiveTab("publicaciones")}
-        >
-          Publicaciones
-        </div>
-        <div
-          style={activeTab === "fotos" ? { ...styles.tab, ...styles.activeTab } : styles.tab}
-          onClick={() => setActiveTab("fotos")}
-        >
-          Fotos
-        </div>
-        {isMe && (
-          <div
-            style={activeTab === "calendario" ? { ...styles.tab, ...styles.activeTab } : styles.tab}
-            onClick={() => setActiveTab("calendario")}
-          >
-            Calendario
+    <div className="profile-page">
+      <div className="profile-card">
+        <div className="profile-header">
+          <img
+            src={perfil.fotoUrl || DEFAULT_AVATAR}
+            alt="Perfil"
+            className="profile-avatar"
+          />
+          <div>
+            <h2 className="profile-name">{perfil.nombre}</h2>
+            {perfil.bio && <p className="profile-bio">{perfil.bio}</p>}
+            {(perfil.ciudad || perfil.region) && (
+              <p className="profile-location">
+                {[perfil.ciudad, perfil.region].filter(Boolean).join(", ")}
+              </p>
+            )}
           </div>
-        )}
-        <div
-          style={activeTab === "resenas" ? { ...styles.tab, ...styles.activeTab } : styles.tab}
-          onClick={() => setActiveTab("resenas")}
-        >
-          Reseñas
         </div>
-      </div>
 
-      {/* Contenido de la pestaña activa */}
-      {renderContent()}
+        <div className="profile-tabs">
+          <button
+            className={`profile-tab ${activeTab === "publicaciones" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("publicaciones")}
+          >
+            Publicaciones
+          </button>
+          <button
+            className={`profile-tab ${activeTab === "fotos" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("fotos")}
+          >
+            Fotos
+          </button>
+          {isMe && (
+            <button
+              className={`profile-tab ${activeTab === "calendario" ? "is-active" : ""}`}
+              onClick={() => setActiveTab("calendario")}
+            >
+              Calendario
+            </button>
+          )}
+          <button
+            className={`profile-tab ${activeTab === "resenas" ? "is-active" : ""}`}
+            onClick={() => setActiveTab("resenas")}
+          >
+            Reseñas
+          </button>
+        </div>
+
+        {renderContent()}
+      </div>
     </div>
   );
 }
-
-const styles = {
-  container: {
-    textAlign: "center",
-    paddingTop: "20px",
-    maxWidth: "500px",
-    margin: "0 auto",
-    fontFamily: "Arial, sans-serif",
-  },
-  header: {
-    display: "flex",
-    alignItems: "center",
-    gap: "15px",
-    marginBottom: "20px",
-  },
-  profileImage: {
-    width: "80px",
-    height: "80px",
-    borderRadius: "50%",
-    objectFit: "cover",
-  },
-  name: {
-    margin: 0,
-    textAlign: "left",
-  },
-  tabBar: {
-    display: "flex",
-    borderRadius: "8px",
-    overflow: "hidden",
-    border: "1px solid #d32f2f",
-    backgroundColor: "#d32f2f",
-    marginBottom: "20px",
-    cursor: "pointer",
-  },
-  tab: {
-    flex: 1,
-    padding: "10px 0",
-    textAlign: "center",
-    fontWeight: "bold",
-    color: "white",
-    transition: "0.3s",
-  },
-  activeTab: {
-    backgroundColor: "white",
-    color: "#d32f2f",
-  },
-  content: {
-    padding: "20px",
-    border: "1px solid #ccc",
-    borderRadius: "8px",
-    minHeight: "150px",
-    backgroundColor: "#f9f9f9",
-  },
-};
 
 export default Profile;

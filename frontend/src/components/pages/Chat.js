@@ -5,6 +5,7 @@ import { db } from "../../lib/firebaseClient";
 import { getAuth } from "firebase/auth";
 import { getMatches } from "../../services/interactions";
 import { createCalendarEventFromSchedule } from "../../services/calendar";
+import { DEFAULT_AVATAR } from "../../utils/placeholders";
 import "./Chat.css";
 
 function Chat() {
@@ -256,7 +257,7 @@ function Chat() {
             const otherUser = it.other;
             return (
               <div key={it.id} className="chat-item" onClick={() => navigate(`/chat/${it.id}`)}>
-                <img className="avatar" src={otherUser?.fotoUrl || "https://via.placeholder.com/56"} alt={otherUser?.nombre || 'usuario'} />
+                <img className="avatar" src={otherUser?.fotoUrl || DEFAULT_AVATAR} alt={otherUser?.nombre || 'usuario'} />
                 <div className="chat-item-body">
                   <div className="name">{otherUser?.nombre || 'Usuario'}</div>
                   <div className="preview">{it.lastMessageText || 'Sin mensajes aún'}</div>
@@ -273,7 +274,7 @@ function Chat() {
     <div className="chat-view">
       <header className="chat-topbar">
         <button className="back" onClick={() => navigate("/chat")}>&lt;</button>
-        <img className="avatar" src={other?.fotoUrl || "https://via.placeholder.com/32"} alt={other?.nombre || 'usuario'} />
+        <img className="avatar" src={other?.fotoUrl || DEFAULT_AVATAR} alt={other?.nombre || 'usuario'} />
         <div className="name">{other?.nombre || 'Chat'}</div>
       </header>
 
@@ -287,7 +288,7 @@ function Chat() {
               {!mine && (
                 <img
                   className="bubble-avatar"
-                  src={other?.fotoUrl || "https://via.placeholder.com/28"}
+                  src={other?.fotoUrl || DEFAULT_AVATAR}
                   alt="avatar"
                 />
               )}

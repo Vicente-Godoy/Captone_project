@@ -2,6 +2,7 @@
 import React, { useState } from "react";
 import { FaHeart, FaStar } from "react-icons/fa";
 import "./Card.css";
+import { DEFAULT_AVATAR } from "../../utils/placeholders";
 
 function Card({
     imageUrl,
@@ -28,10 +29,10 @@ function Card({
             <div className="card__row">
                 <img
                     className="card__img"
-                    src={imageUrl || "https://via.placeholder.com/160x120?text=Foto"}
+                    src={imageUrl || DEFAULT_AVATAR}
                     alt={title || "perfil"}
                     onError={(e) =>
-                        (e.currentTarget.src = "https://via.placeholder.com/160x120?text=Foto")
+                        (e.currentTarget.src = DEFAULT_AVATAR)
                     }
                 />
 

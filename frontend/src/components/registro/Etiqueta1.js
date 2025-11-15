@@ -6,16 +6,30 @@ import "./etiqueta1.css";
 import { useRegistroFlow } from "./RegistroFlow";
 
 const OPCIONES = [
-  "DEPORTES", "CIENCIAS", "FITNESS", "ARTES", "MUSICA", "IDIOMAS", "FILOSOFÍA",
-  "COMPUTACION", "PROGRAMACIÓN", "ESCRITURA", "COCINA", "FINANZAS", "MODA",
-  "ROBÓTICA", "QUÍMICA", "HISTORIA", "MATEMÁTICAS", "LITERATURA"
+  "DEPORTES",
+  "CIENCIAS",
+  "FITNESS",
+  "ARTES",
+  "MÚSICA",
+  "IDIOMAS",
+  "FILOSOFÍA",
+  "COMPUTACIÓN",
+  "PROGRAMACIÓN",
+  "ESCRITURA",
+  "COCINA",
+  "FINANZAS",
+  "MODA",
+  "ROBÓTICA",
+  "QUÍMICA",
+  "HISTORIA",
+  "MATEMÁTICAS",
+  "LITERATURA",
 ];
 
 export default function Etiqueta1() {
   const navigate = useNavigate();
   const { registroData, setRegistroData } = useRegistroFlow();
 
-  // carga inicial desde el contexto (si vuelve atrás no se pierde)
   const [seleccionadas, setSeleccionadas] = useState(
     Array.isArray(registroData.etiquetas) ? registroData.etiquetas : []
   );
@@ -27,50 +41,43 @@ export default function Etiqueta1() {
   };
 
   const goNext = () => {
-    // si quieres forzar al menos una etiqueta, descomenta:
-    // if (seleccionadas.length === 0) return;
-
     setRegistroData((prev) => ({ ...prev, etiquetas: seleccionadas }));
     navigate("/registro/Etiqueta2");
   };
 
   return (
-    <div className="e1-page">
-      <header className="e1-header">
-        <button
-          className="back-btn"
-          onClick={() => navigate(-1)}
-          aria-label="Volver"
-        >
-          ‹
-        </button>
-        <h1 className="e1-title">DEFINE TU<br />CONOCIMIENTO</h1>
-      </header>
+    <div className="e1-shell">
+      <div className="e1-page">
+        <header className="e1-header">
+          <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">
+            &#8249;
+          </button>
+          <div>
+            <h1 className="e1-title">Define tu conocimiento</h1>
+            <p className="e1-sub">Elige las etiquetas que describen tu habilidad.</p>
+          </div>
+        </header>
 
-      <main className="e1-main">
-        <p className="e1-sub">
-          SELECCIONA LAS ETIQUETAS QUE DESCRIBEN TU CONOCIMIENTO
-        </p>
+        <main className="e1-main">
+          <div className="chips-grid">
+            {OPCIONES.map((et) => (
+              <button
+                key={et}
+                type="button"
+                onClick={() => toggle(et)}
+                className={`chip ${seleccionadas.includes(et) ? "selected" : ""}`}
+              >
+                {et}
+              </button>
+            ))}
+          </div>
 
-        <div className="chips-grid">
-          {OPCIONES.map((et) => (
-            <button
-              key={et}
-              type="button"
-              onClick={() => toggle(et)}
-              className={["chip", seleccionadas.includes(et) ? "selected" : ""]
-                .join(" ")
-                .trim()}
-            >
-              {et}
-            </button>
-          ))}
-        </div>
-
-        <button className="btn-pill danger" onClick={goNext}>
-          SIGUIENTE
-        </button>
-      </main>
+          <button className="btn-pill primary" onClick={goNext}>
+            Siguiente
+          </button>
+        </main>
+      </div>
     </div>
   );
 }
+

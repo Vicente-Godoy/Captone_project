@@ -53,3 +53,21 @@ export async function fetchPublications() {
     return res.json(); // array de publicaciones
 }
 
+export async function deletePublication(id) {
+    const auth = getAuth();
+    const user = auth.currentUser;
+    if (!user) throw new Error("No hay usuario autenticado");
+
+    const token = await user.getIdToken();
+    const res = await fetch(`${API_BASE}/api/publications/${id}`, {
+        method: "DELETE",
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || "No se pudo eliminar la publicación");
+    }
+    return res.json();
+}

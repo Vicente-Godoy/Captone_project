@@ -5,9 +5,24 @@ import "./etiqueta2.css";
 import { useRegistroFlow } from "./RegistroFlow";
 
 const OPCIONES = [
-  "DEPORTES", "CIENCIAS", "FITNESS", "ARTES", "MUSICA", "IDIOMAS", "FILOSOFÍA",
-  "COMPUTACION", "PROGRAMACIÓN", "ESCRITURA", "COCINA", "FINANZAS", "MODA",
-  "ROBÓTICA", "QUÍMICA", "HISTORIA", "MATEMÁTICAS", "LITERATURA"
+  "DEPORTES",
+  "CIENCIAS",
+  "FITNESS",
+  "ARTES",
+  "MÚSICA",
+  "IDIOMAS",
+  "FILOSOFÍA",
+  "COMPUTACIÓN",
+  "PROGRAMACIÓN",
+  "ESCRITURA",
+  "COCINA",
+  "FINANZAS",
+  "MODA",
+  "ROBÓTICA",
+  "QUÍMICA",
+  "HISTORIA",
+  "MATEMÁTICAS",
+  "LITERATURA",
 ];
 
 export default function Etiqueta2() {
@@ -25,48 +40,43 @@ export default function Etiqueta2() {
   };
 
   const goNext = () => {
-    // Si quieres forzar al menos una selección, descomenta:
-    // if (seleccionadas.length === 0) return;
-
     setRegistroData((prev) => ({ ...prev, intereses: seleccionadas }));
     navigate("/registro/Foto");
   };
 
   return (
-    <div className="e2-page">
-      <header className="e2-header">
-        <button
-          className="back-btn"
-          onClick={() => navigate(-1)}
-          aria-label="Volver"
-        >
-          ‹
-        </button>
-        <h1 className="e2-title">¿QUÉ TEMAS<br />TE INTERESAN?</h1>
-      </header>
+    <div className="e2-shell">
+      <div className="e2-page">
+        <header className="e2-header">
+          <button className="back-btn" onClick={() => navigate(-1)} aria-label="Volver">
+            &#8249;
+          </button>
+          <div>
+            <h1 className="e2-title">¿Qué temas te interesan?</h1>
+            <p className="e2-sub">Puedes marcar más de una opción.</p>
+          </div>
+        </header>
 
-      <main className="e2-main">
-        <p className="e2-sub">PUEDES MARCAR MÁS DE UNA OPCIÓN</p>
+        <main className="e2-main">
+          <div className="chips-grid">
+            {OPCIONES.map((et) => (
+              <button
+                key={et}
+                type="button"
+                onClick={() => toggle(et)}
+                className={`chip ${seleccionadas.includes(et) ? "selected" : ""}`}
+              >
+                {et}
+              </button>
+            ))}
+          </div>
 
-        <div className="chips-grid">
-          {OPCIONES.map((et) => (
-            <button
-              key={et}
-              type="button"
-              onClick={() => toggle(et)}
-              className={["chip", seleccionadas.includes(et) ? "selected" : ""]
-                .join(" ")
-                .trim()}
-            >
-              {et}
-            </button>
-          ))}
-        </div>
-
-        <button className="btn-pill danger" onClick={goNext}>
-          SIGUIENTE
-        </button>
-      </main>
+          <button className="btn-pill primary" onClick={goNext}>
+            Siguiente
+          </button>
+        </main>
+      </div>
     </div>
   );
 }
+

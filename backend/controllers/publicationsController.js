@@ -148,10 +148,37 @@ const getPublicationById = async (req, res) => {
   }
 };
 
+const deletePublication = async (req, res) => {
+  try {
+    const { publicationId } = req.params;
+    const uid = req.user?.uid;
+    if (!uid) return res.status(401).json({ error: 'No autorizado' });
+    if (!publicationId) return res.status(400).json({ error: 'publicationId es obligatorio' });
+
+    const docRef = db.collection('publications').doc(publicationId);
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'PublicaciA3n no encontrada.' });
+    }
+
+    const data = doc.data();
+    const ownerId = data.creatorId || data.authorUid;
+    if (ownerId !== uid) {
+      return res.status(403).json({ error: 'No autorizado para eliminar esta publicaciA3n.' });
+    }
+
+    await docRef.delete();
+    return res.status(200).json({ deleted: true });
+  } catch (error) {
+    console.error('Error al eliminar publicaciA3n:', error);
+    return res.status(500).json({ error: 'No se pudo eliminar la publicaciA3n.' });
+  }
+};
+
 
 module.exports = {
   createPublication,
   getAllPublications,
   getPublicationById,
+  deletePublication,
 };
-

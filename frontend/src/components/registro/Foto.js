@@ -7,6 +7,7 @@ import { auth, storage } from "../../lib/firebaseClient";
 import { getIdToken } from "../../services/auth";
 import { toast } from "../../utils/toast";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
+import "./foto.css";
 
 export default function Foto() {
   const navigate = useNavigate();
@@ -30,7 +31,6 @@ export default function Foto() {
       return;
     }
 
-    // Liberar previo objectURL si existía
     if (preview && preview.startsWith("blob:")) {
       try {
         URL.revokeObjectURL(preview);
@@ -87,7 +87,6 @@ export default function Foto() {
         return;
       }
 
-      // 1) Subir foto y actualizar perfil (si el usuario eligió archivo)
       let fotoUrlFinal = null;
       if (file) {
         try {
@@ -106,17 +105,15 @@ export default function Foto() {
             const txt = await resProfile.text();
             console.warn("Actualizar perfil falló:", txt);
           }
-          // Guardar URL final en el flujo
           setRegistroData((prev) => ({ ...prev, foto: fotoUrlFinal }));
         } catch (e) {
           console.error("Upload avatar falló:", e);
           toast.error(
-            "La publicación continuará, pero la foto de perfil no se pudo subir (revisa bloqueadores/antivirus/VPN)."
+            "La publicación continuará, pero la foto de perfil no se pudo subir."
           );
         }
       }
 
-      // 2) Crear publicación en backend (formato unificado)
       const payload = {
         title: registroData.conocimiento,
         content: registroData.descripcion || null,
@@ -153,43 +150,35 @@ export default function Foto() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
-      <div style={{ marginBottom: "20px" }}>
-        <button
-          onClick={() => navigate("/")}
-          style={{
-            backgroundColor: "#6c757d",
-            color: "white",
-            border: "none",
-            padding: "8px 16px",
-            borderRadius: "4px",
-            cursor: "pointer",
-            marginBottom: "16px",
-          }}
-        >
-          ← Volver al Home
+    <div className="foto-shell">
+      <div className="foto-card">
+        <button className="foto-back" onClick={() => navigate("/")}>
+          &#8249; Volver al Home
         </button>
-        <h2>Sube tu foto</h2>
+        <h2 className="foto-title">Sube tu foto</h2>
+        <p className="foto-subtitle">Personaliza tu perfil con una imagen. Puedes cambiarla después.</p>
+
+        <label className="foto-input">
+          <span>Elegir archivo</span>
+          <input type="file" accept="image/*" onChange={handleFile} />
+        </label>
+
+        {preview && (
+          <img
+            src={preview}
+            alt="vista previa"
+            className="foto-preview"
+          />
+        )}
+
+        <button
+          className="btn-pill primary"
+          onClick={finish}
+          disabled={saving}
+        >
+          {saving ? "Guardando..." : "Finalizar"}
+        </button>
       </div>
-
-      <input type="file" accept="image/*" onChange={handleFile} />
-
-      {preview && (
-        <img
-          src={preview}
-          alt="vista previa"
-          style={{ display: "block", width: 180, marginTop: 20, borderRadius: 8 }}
-        />
-      )}
-
-      <button
-        className="btn-pill danger"
-        style={{ marginTop: 20 }}
-        onClick={finish}
-        disabled={saving}
-      >
-        {saving ? "Guardando..." : "FINALIZAR"}
-      </button>
     </div>
   );
 }

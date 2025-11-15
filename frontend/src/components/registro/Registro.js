@@ -72,18 +72,23 @@ export default function Registro() {
   };
 
   return (
-    <div className="register-page">
-      <header className="reg-header">
-        <div className="logo-circle">SS</div>
-        <h1 className="brand">SkillSwapp</h1>
-      </header>
+    <div className="register-shell">
+      <div className="register-page">
+        <header className="reg-header">
+          <div className="logo-circle">SS</div>
+          <div>
+            <h1 className="brand">SkillSwapp</h1>
+            <p className="reg-tagline">Conecta talentos e intercambia habilidades</p>
+          </div>
+        </header>
 
-      <section className="reg-card">
-        <h2 className="reg-title">
-          CREA TU<br />CUENTA!!
-        </h2>
+        <section className="reg-card">
+          <h2 className="reg-title">
+            Crea tu cuenta
+          </h2>
+          <p className="reg-subtitle">Completa tus datos para comenzar</p>
 
-        <div className="form-grid">
+          <div className="form-grid">
           <input
             type="text"
             placeholder="Nombre"
@@ -152,22 +157,23 @@ export default function Registro() {
           )}
         </div>
 
-        {errMsg && <p style={{ color: "#d33", marginTop: 8 }}>{errMsg}</p>}
+          {errMsg && <p className="reg-error">{errMsg}</p>}
 
-        <button
-          className="btn-pill outline"
-          onClick={handleRegister}
-          disabled={!canSubmit}
-        >
-          {loading ? "Creando..." : "REGISTRAR"}
-        </button>
+          <button
+            className="btn-pill outline"
+            onClick={handleRegister}
+            disabled={!canSubmit}
+          >
+            {loading ? "Creando..." : "Registrar"}
+          </button>
 
-        {(!canSubmit && !loading) && (
-          <p style={{ color: "#666", marginTop: 8, fontSize: 12, textAlign: "center" }}>
-            Completa los campos correctamente para continuar.
-          </p>
-        )}
-      </section>
+          {(!canSubmit && !loading) && (
+            <p className="reg-hint">
+              Completa los campos correctamente para continuar.
+            </p>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

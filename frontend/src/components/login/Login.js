@@ -17,7 +17,7 @@ function Login({ onLogin }) {
     setErr("");
 
     if (!user || !pass) {
-      setErr("Ingresa email y contraseña.");
+      setErr("Ingresa email y contraseA�a.");
       return;
     }
 
@@ -29,88 +29,91 @@ function Login({ onLogin }) {
       navigate("/");
     } catch (e) {
       console.error(e);
-      setErr(e.message || "No se pudo iniciar sesión.");
+      setErr(e.message || "No se pudo iniciar sesiA3n.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="login-page">
-      {/* Header / logo + marca */}
-      <header className="login-header">
-        <div className="logo-circle">SS</div>
-        <h1 className="brand">SkillSwapp</h1>
-      </header>
-
-      {/* Texto bienvenida */}
-      <div className="welcome">
-        <h2>
-          BIENVENIDO A
-          <br />
-          SKILLSWAPP
-        </h2>
-      </div>
-
-      {/* Tarjeta roja */}
-      <div className="card">
-        <form onSubmit={handleSubmit} className="login-form">
-          <div className="input-wrap">
-            <span className="icon" aria-hidden>
-              •
-            </span>
-            <input
-              type="email"
-              placeholder="Email"
-              value={user}
-              onChange={(e) => setUser(e.target.value)}
-              autoComplete="email"
-            />
+    <div className="login-shell">
+      <div className="login-page">
+        {/* Header / logo + marca */}
+        <header className="login-header">
+          <div className="logo-circle">
+            <span>SS</span>
           </div>
-
-          <div className="input-wrap">
-            <span className="icon" aria-hidden>
-              •
-            </span>
-            <input
-              type="password"
-              placeholder="Password"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-              autoComplete="current-password"
-            />
+          <div>
+            <h1 className="brand">SkillSwapp</h1>
+            <p className="tagline">Intercambia habilidades, crea conexiones</p>
           </div>
+        </header>
 
-          {err && (
-            <p style={{ color: "#d33", marginTop: 8, minHeight: 18 }}>{err}</p>
-          )}
+        {/* Texto bienvenida */}
+        <div className="welcome">
+          <h2>Bienvenido</h2>
+          <p>Inicia sesiA3n para continuar</p>
+        </div>
 
-          <button
-            type="submit"
-            className="btn-pill primary"
-            disabled={loading || !user || !pass}
-          >
-            {loading ? "Ingresando..." : "INGRESAR"}
-          </button>
+        {/* Tarjeta principal */}
+        <div className="card login-panel">
+          <form onSubmit={handleSubmit} className="login-form">
+            <div className="input-wrap">
+              <span className="icon" aria-hidden>
+                �?�
+              </span>
+              <input
+                type="email"
+                placeholder="Correo electrA3nico"
+                value={user}
+                onChange={(e) => setUser(e.target.value)}
+                autoComplete="email"
+              />
+            </div>
 
-          {/* Solo redirige al wizard de registro */}
-          <button
-            type="button"
-            className="btn-pill secondary"
-            onClick={() => navigate("/registro")}
-            disabled={loading}
-          >
-            REGÍSTRATE
-          </button>
-        </form>
+            <div className="input-wrap">
+              <span className="icon" aria-hidden>
+                �?�
+              </span>
+              <input
+                type="password"
+                placeholder="ContraseA�a"
+                value={pass}
+                onChange={(e) => setPass(e.target.value)}
+                autoComplete="current-password"
+              />
+            </div>
+
+            {err && <p className="form-error">{err}</p>}
+
+            <button
+              type="submit"
+              className="btn-pill primary"
+              disabled={loading || !user || !pass}
+            >
+              {loading ? "Ingresando..." : "Ingresar"}
+            </button>
+
+            {/* Solo redirige al wizard de registro */}
+            <button
+              type="button"
+              className="btn-pill secondary"
+              onClick={() => navigate("/registro")}
+              disabled={loading}
+            >
+              Crear cuenta
+            </button>
+          </form>
+        </div>
+
+        <div className="login-footer">
+          <a className="forgot" href="#recuperar">
+            Recupera tu contraseA�a
+          </a>
+        </div>
       </div>
-
-      <a className="forgot" href="#recuperar">
-        RECUPERA TU CONTRASEÑA
-      </a>
     </div>
   );
 }
 
 export default Login;
-
