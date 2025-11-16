@@ -1,5 +1,5 @@
 // src/components/registro/Foto.js
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegistroFlow } from "./RegistroFlow";
 import API_BASE from "../../api";
@@ -16,7 +16,80 @@ export default function Foto() {
   const [preview, setPreview] = useState(registroData.foto || null);
   const [file, setFile] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState(null);
+  const uploadPromiseRef = useRef(null);
   const MAX_SIZE = 5 * 1024 * 1024; // 5MB
+
+  const optimizeImageFile = (rawFile) =>
+    new Promise((resolve, reject) => {
+      if (!rawFile.type?.startsWith("image/")) {
+        reject(new Error("Archivo no es imagen"));
+        return;
+      }
+      if (rawFile.size <= 1.5 * 1024 * 1024) {
+        resolve(rawFile);
+        return;
+      }
+
+      const url = URL.createObjectURL(rawFile);
+      const img = new Image();
+      img.onload = () => {
+        URL.revokeObjectURL(url);
+        const canvas = document.createElement("canvas");
+        const maxDim = 1280;
+        let { width, height } = img;
+        if (width > height && width > maxDim) {
+          height = Math.round((height * maxDim) / width);
+          width = maxDim;
+        } else if (height > maxDim) {
+          width = Math.round((width * maxDim) / height);
+          height = maxDim;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (!blob) {
+              reject(new Error("No se pudo optimizar la imagen"));
+              return;
+            }
+            const optimizedFile = new File([blob], rawFile.name, {
+              type: "image/jpeg",
+            });
+            resolve(optimizedFile);
+          },
+          "image/jpeg",
+          0.85
+        );
+      };
+      img.onerror = () => {
+        URL.revokeObjectURL(url);
+        reject(new Error("No se pudo leer la imagen"));
+      };
+      img.src = url;
+    });
+
+  const startAvatarUpload = async (rawFile) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+    setUploadingAvatar(true);
+    setUploadedAvatarUrl(null);
+    try {
+      const optimized = await optimizeImageFile(rawFile);
+      uploadPromiseRef.current = uploadAvatarAndGetUrl(uid, optimized);
+      const url = await uploadPromiseRef.current;
+      setUploadedAvatarUrl(url);
+    } catch (err) {
+      console.error("Pre-upload avatar error:", err);
+      setUploadedAvatarUrl(null);
+    } finally {
+      setUploadingAvatar(false);
+      uploadPromiseRef.current = null;
+    }
+  };
 
   const handleFile = (e) => {
     const f = e.target.files?.[0];
@@ -41,6 +114,7 @@ export default function Foto() {
     const url = URL.createObjectURL(f);
     setPreview(url);
     setRegistroData((prev) => ({ ...prev, foto: url }));
+    startAvatarUpload(f);
   };
 
   useEffect(() => {
@@ -55,9 +129,11 @@ export default function Foto() {
 
   const uploadAvatarAndGetUrl = (uid, f) =>
     new Promise((resolve, reject) => {
+      const timestamp = Date.now();
       const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
-      const avatarRef = ref(storage, `users/${uid}/avatar_${Date.now()}.${ext}`);
-      const metadata = { contentType: f.type || "image/jpeg" };
+      const sanitizedName = f.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
+      const avatarRef = ref(storage, `uploads/avatars/${uid}/${timestamp}-${sanitizedName || `avatar.${ext}`}`);
+      const metadata = { contentType: f.type?.startsWith("image/") ? f.type : "image/jpeg" };
       const task = uploadBytesResumable(avatarRef, f, metadata);
 
       task.on(
@@ -87,10 +163,11 @@ export default function Foto() {
         return;
       }
 
-      let fotoUrlFinal = null;
-      if (file) {
+      let fotoUrlFinal = uploadedAvatarUrl;
+      if (!fotoUrlFinal && file) {
         try {
-          fotoUrlFinal = await uploadAvatarAndGetUrl(uid, file);
+          const optimized = await optimizeImageFile(file);
+          fotoUrlFinal = await uploadAvatarAndGetUrl(uid, optimized);
 
           const resProfile = await fetch(`${API_BASE}/api/users/me`, {
             method: "PUT",
@@ -108,9 +185,7 @@ export default function Foto() {
           setRegistroData((prev) => ({ ...prev, foto: fotoUrlFinal }));
         } catch (e) {
           console.error("Upload avatar falló:", e);
-          toast.error(
-            "La publicación continuará, pero la foto de perfil no se pudo subir."
-          );
+          toast.error("La publicación continuará, pero la foto de perfil no se pudo subir.");
         }
       }
 
@@ -174,9 +249,9 @@ export default function Foto() {
         <button
           className="btn-pill primary"
           onClick={finish}
-          disabled={saving}
+          disabled={saving || uploadingAvatar}
         >
-          {saving ? "Guardando..." : "Finalizar"}
+          {saving ? "Guardando..." : uploadingAvatar ? "Cargando imagen..." : "Finalizar"}
         </button>
       </div>
     </div>

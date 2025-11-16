@@ -1,13 +1,38 @@
 // src/components/common/CreatePostForm.js
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { getAuth } from 'firebase/auth';
 import { createPublication } from '../../services/publications';
+import { uploadPublicationImage } from '../../services/storage';
 import { toast } from '../../utils/toast';
 
 export default function CreatePostForm({ onPostCreated }) {
     const [title, setTitle] = useState('');
     const [content, setContent] = useState('');
     const [imageUrl, setImageUrl] = useState('');
+    const [file, setFile] = useState(null);
+    const [filePreview, setFilePreview] = useState(null);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        return () => {
+            if (filePreview) {
+                URL.revokeObjectURL(filePreview);
+            }
+        };
+    }, [filePreview]);
+
+    const handleFileChange = (event) => {
+        const selected = event.target.files && event.target.files[0] ? event.target.files[0] : null;
+        setFile(selected);
+        if (filePreview) {
+            URL.revokeObjectURL(filePreview);
+        }
+        if (selected) {
+            setFilePreview(URL.createObjectURL(selected));
+        } else {
+            setFilePreview(null);
+        }
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -21,10 +46,25 @@ export default function CreatePostForm({ onPostCreated }) {
             setLoading(true);
             console.log('[CREATE POST FORM] Submitting:', { title, content, imageUrl });
 
+            let finalImageUrl = imageUrl.trim() || null;
+            if (file) {
+                const user = getAuth().currentUser;
+                if (!user) {
+                    throw new Error('Debes iniciar sesión para subir imágenes');
+                }
+                try {
+                    finalImageUrl = await uploadPublicationImage(file, user.uid);
+                } catch (uploadError) {
+                    console.error('[CREATE POST FORM] Upload error:', uploadError);
+                    toast.error(`No se pudo subir la imagen: ${uploadError.message}`);
+                    return;
+                }
+            }
+
             const result = await createPublication({
                 title: title.trim(),
                 content: content.trim() || null,
-                imageUrl: imageUrl.trim() || null
+                imageUrl: finalImageUrl
             });
 
             console.log('[CREATE POST FORM] Success:', result);
@@ -34,6 +74,11 @@ export default function CreatePostForm({ onPostCreated }) {
             setTitle('');
             setContent('');
             setImageUrl('');
+            setFile(null);
+            if (filePreview) {
+                URL.revokeObjectURL(filePreview);
+                setFilePreview(null);
+            }
 
             // Notify parent component
             onPostCreated?.(result);
@@ -96,6 +141,30 @@ export default function CreatePostForm({ onPostCreated }) {
                         }}
                         disabled={loading}
                     />
+                </div>
+
+                <div style={{ marginBottom: '12px' }}>
+                    <label style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
+                        Imagen desde tu equipo
+                    </label>
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        disabled={loading}
+                    />
+                    {filePreview && (
+                        <div style={{ marginTop: '8px' }}>
+                            <img
+                                src={filePreview}
+                                alt="Vista previa"
+                                style={{ width: '120px', height: '120px', objectFit: 'cover', borderRadius: '8px', border: '1px solid #ccc' }}
+                            />
+                        </div>
+                    )}
+                    <small style={{ display: 'block', marginTop: '4px', color: '#555' }}>
+                        Puedes subir un archivo o pegar un URL en el campo siguiente.
+                    </small>
                 </div>
 
                 <div style={{ marginBottom: '16px' }}>

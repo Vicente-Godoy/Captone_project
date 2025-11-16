@@ -206,6 +206,26 @@ body {
     box-shadow: none;
 }
 
+.btn-pill.google {
+    margin-top: 12px;
+    background: #ffffff;
+    color: #202124;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-pill.google::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background-image: url("https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
 .btn-pill.secondary {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.25);

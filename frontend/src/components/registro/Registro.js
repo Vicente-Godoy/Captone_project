@@ -177,3 +177,4 @@ export default function Registro() {
     </div>
   );
 }
+

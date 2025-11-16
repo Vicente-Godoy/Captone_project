@@ -14,3 +14,12 @@ backend/serviceAccountKey.json
 # Builds
 **/build/
 **/dist/
+
+# Logs y artefactos locales
+**/logs/
+
+# Documentación auxiliar / notas personales
+temp_snippet.txt
+evidencias.txt
+Instructivo*.md
+Instructivo*.pdf

@@ -6,6 +6,9 @@ import {
     signOut,
     onAuthStateChanged,
     updateProfile,
+    GoogleAuthProvider,
+    signInWithPopup,
+    sendEmailVerification,
 } from "firebase/auth";
 import API_BASE from "../api";
 import { toast } from "../utils/toast";
@@ -38,7 +41,7 @@ async function syncUserWithBackend(user, maxRetries = 2) {
 
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-            console.log(`🔄 Sincronizando usuario con backend (intento ${attempt}/${maxRetries})`);
+            console.log(`Sincronizando usuario con backend (intento ${attempt}/${maxRetries})`);
 
             const response = await fetch(`${API_BASE}/api/users/me`, {
                 method: 'PUT',
@@ -55,12 +58,12 @@ async function syncUserWithBackend(user, maxRetries = 2) {
             }
 
             const result = await response.json();
-            console.log('✅ Usuario sincronizado exitosamente:', result);
+            console.log('Usuario sincronizado exitosamente:', result);
             return result;
 
         } catch (error) {
             lastError = error;
-            console.error(`❌ Error en intento ${attempt}:`, error.message);
+            console.error(`Error en intento ${attempt}:`, error.message);
 
             if (attempt < maxRetries) {
                 // Esperar un poco antes del siguiente intento
@@ -70,7 +73,7 @@ async function syncUserWithBackend(user, maxRetries = 2) {
     }
 
     // Si llegamos aquí, todos los intentos fallaron
-    console.error('❌ Falló la sincronización después de todos los intentos');
+    console.error('Falló la sincronización después de todos los intentos');
     throw new Error(`No se pudo sincronizar el usuario: ${lastError.message}`);
 }
 
@@ -90,11 +93,16 @@ export async function registerUser({ nombre, email, password }) {
     // Sincronizar con backend
     try {
         await syncUserWithBackend(cred.user);
-        toast.success('Usuario creado y sincronizado exitosamente');
+        toast.info('Cuenta creada y sincronizada. Te enviamos un correo para verificarla.');
     } catch (error) {
         console.error('Error sincronizando usuario tras registro:', error);
-        // Mostrar error al usuario
         toast.error(`Usuario creado pero hubo un problema sincronizando con el servidor: ${error.message}`);
+    }
+
+    try {
+        await sendEmailVerification(cred.user);
+    } catch (verificationError) {
+        console.error('No se pudo enviar correo de verificación:', verificationError);
     }
 
     return cred.user;
@@ -103,6 +111,7 @@ export async function registerUser({ nombre, email, password }) {
 /** Login */
 export async function loginWithPassword(email, password) {
     const cred = await signInWithEmailAndPassword(auth, email, password);
+    await cred.user.reload();
 
     // Sincronizar con backend
     try {
@@ -112,6 +121,22 @@ export async function loginWithPassword(email, password) {
         console.error('Error sincronizando usuario tras login:', error);
         // Mostrar error al usuario
         toast.error(`Login exitoso pero hubo un problema sincronizando con el servidor: ${error.message}`);
+    }
+
+    return cred.user;
+}
+
+/** Login con Google */
+const googleProvider = new GoogleAuthProvider();
+export async function loginWithGoogle() {
+    const cred = await signInWithPopup(auth, googleProvider);
+
+    try {
+        await syncUserWithBackend(cred.user);
+        toast.success('Login con Google exitoso y usuario sincronizado');
+    } catch (error) {
+        console.error('Error sincronizando usuario tras login con Google:', error);
+        toast.error(`Login con Google exitoso pero hubo un problema sincronizando con el servidor: ${error.message}`);
     }
 
     return cred.user;

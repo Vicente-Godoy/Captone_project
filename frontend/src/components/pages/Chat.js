@@ -103,6 +103,13 @@ function Chat() {
     mark();
   }, [id, me]);
 
+  useEffect(() => {
+    document.body.classList.add("chat-body");
+    return () => {
+      document.body.classList.remove("chat-body");
+    };
+  }, []);
+
   const canSend = useMemo(() => !!(me && id && text.trim()), [me, id, text]);
 
   const send = async () => {
@@ -152,7 +159,7 @@ function Chat() {
     const [hh, mm] = timePart.split(":").map((x) => parseInt(x, 10));
     const when = new Date(y, m - 1, d, hh, mm, 0);
 
-    const textMsg = `📅 Reunión propuesta: ${formatDateTime(when)}`;
+    const textMsg = `Reunión propuesta: ${formatDateTime(when)}`;
     const payload = {
       fromUid: me.uid,
       text: textMsg,
@@ -228,8 +235,8 @@ function Chat() {
       // Fallback: crear un mensaje de respuesta (no modifica el original)
       const responseText =
         status === "accepted"
-          ? "✅ Reunión aceptada"
-          : "❌ Reunión cancelada";
+          ? "Reunión aceptada"
+          : "Reunión cancelada";
       const payload = {
         fromUid: me?.uid,
         type: "schedule_response",
@@ -334,10 +341,10 @@ function Chat() {
                 {isSchedule && (
                   <div className="schedule-meta">
                     {(m.status === "accepted" || decision?.status === "accepted") && (
-                      <span className="ok">Confirmada ✅</span>
+                      <span className="ok">Confirmada</span>
                     )}
                     {(m.status === "rejected" || decision?.status === "rejected") && (
-                      <span className="no">Rechazada ❌</span>
+                      <span className="no">Rechazada</span>
                     )}
                     {!m.status && !decision && (
                       <div className="schedule-actions">
@@ -362,7 +369,7 @@ function Chat() {
 
       <div className="chat-input">
         <button className="plus" title="Más">+</button>
-        <button className="schedule" title="Agendar reunión" onClick={openScheduler}>📅</button>
+        <button className="schedule" title="Agendar reunión" onClick={openScheduler}>Agenda</button>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
@@ -395,3 +402,5 @@ function Chat() {
   );
 }
 export default Chat;
+
+

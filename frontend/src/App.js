@@ -39,9 +39,9 @@ function App() {
 
   return (
     <Router>
-      {/* 👉 Un solo provider para toda la app */}
+      {/* Provider global para la app */}
       <RegistroFlowProvider>
-        <div style={{ paddingBottom: loggedIn ? "90px" : 0 }}>
+        <div className={`app-shell ${loggedIn ? "app-shell-auth" : "app-shell-public"}`}>
           <Routes>
             {!loggedIn ? (
               <Fragment>
@@ -69,7 +69,7 @@ function App() {
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/profile/:id" element={<Profile />} />
 
-                {/* 👇 Wizard también disponible estando logueado (necesario para el botón “+”) */}
+                {/* Wizard disponible también estando logueado */}
                 <Route path="/registro" element={<Registro />} />
                 <Route path="/registro/ConOfre" element={<ConOfre />} />
                 <Route path="/registro/Etiqueta1" element={<Etiqueta1 />} />
