@@ -16,6 +16,20 @@ async function getUserPublicData(uid) {
   };
 }
 
+async function createNotification(userId, data) {
+  if (!userId) return;
+  try {
+    await db.collection('notifications').add({
+      userId,
+      read: false,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      ...data,
+    });
+  } catch (error) {
+    console.warn('No se pudo crear notificación:', error);
+  }
+}
+
 // POST /api/interactions/like { publicationId }
 const likePublication = async (req, res) => {
   try {
@@ -73,13 +87,60 @@ const likePublication = async (req, res) => {
           createdAt: admin.firestore.FieldValue.serverTimestamp(),
           lastMessageAt: null,
         }, { merge: true });
+
+        await Promise.all([
+          createNotification(u1, {
+            type: 'match',
+            title: 'Nuevo match',
+            message: `Hiciste match con ${userB?.nombre || 'un usuario'}.`,
+            matchId,
+            otherUser: userB || null,
+          }),
+          createNotification(u2, {
+            type: 'match',
+            title: 'Nuevo match',
+            message: `Hiciste match con ${userA?.nombre || 'un usuario'}.`,
+            matchId,
+            otherUser: userA || null,
+          }),
+        ]);
       }
     }
+
+    await db
+      .collection('userLikes')
+      .doc(`${fromUid}_${publicationId}`)
+      .set({
+        fromUid,
+        publicationId,
+        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      }, { merge: true });
 
     return res.status(200).json({ liked: true, matched, matchId });
   } catch (err) {
     console.error('Error en likePublication:', err);
     return res.status(500).json({ error: 'No se pudo registrar el like' });
+  }
+};
+
+const getMyLikes = async (req, res) => {
+  try {
+    const uid = req.user?.uid;
+    if (!uid) return res.status(401).json({ error: 'No autorizado' });
+
+    const snapshot = await db
+      .collection('userLikes')
+      .where('fromUid', '==', uid)
+      .limit(1000)
+      .get();
+
+    const publicationIds = snapshot.docs
+      .map((doc) => doc.data()?.publicationId)
+      .filter(Boolean);
+    return res.status(200).json(publicationIds);
+  } catch (err) {
+    console.error('Error en getMyLikes:', err);
+    return res.status(500).json({ error: 'No se pudieron obtener los likes.' });
   }
 };
 
@@ -90,25 +151,43 @@ const getMyMatches = async (req, res) => {
     if (!uid) return res.status(401).json({ error: 'No autorizado' });
 
     // Evitar índice compuesto obligatorio: quitamos orderBy del query y ordenamos en memoria
-    const q = await db.collection('matches').where('users', 'array-contains', uid).limit(100).get();
-    const items = q.docs.map(doc => {
+  const q = await db.collection('matches').where('users', 'array-contains', uid).limit(100).get();
+  const items = await Promise.all(q.docs.map(async (doc) => {
       const d = doc.data();
-      // Determinar el otro usuario y armar un resumen útil
       const otherUid = d.users?.find(u => u !== uid);
       let other = null;
       if (d.userA?.uid === otherUid) other = d.userA;
       else if (d.userB?.uid === otherUid) other = d.userB;
-      return { id: doc.id, ...d, other };
-    }).sort((a, b) => {
+
+      let lastMessageAt = null;
+      let lastSeenBy = {};
+      try {
+        const convSnap = await db.collection('conversations').doc(doc.id).get();
+        if (convSnap.exists) {
+          const convData = convSnap.data() || {};
+          const ts = convData.lastMessageAt;
+          lastMessageAt = ts?.toDate ? ts.toDate().toISOString() : ts || null;
+          const map = convData.lastSeenBy || {};
+          Object.entries(map).forEach(([key, value]) => {
+            lastSeenBy[key] = value?.toDate ? value.toDate().toISOString() : value || null;
+          });
+        }
+      } catch (error) {
+        console.warn('No se pudo obtener conversación:', error);
+      }
+
+      return { id: doc.id, ...d, other, lastMessageAt, lastSeenBy };
+    }));
+  const sorted = items.sort((a, b) => {
       const ta = a.createdAt?.toMillis?.() || 0;
       const tb = b.createdAt?.toMillis?.() || 0;
       return tb - ta;
     });
-    return res.status(200).json(items);
+  return res.status(200).json(sorted);
   } catch (err) {
     console.error('Error en getMyMatches:', err);
     return res.status(500).json({ error: 'No se pudieron obtener los matches' });
   }
 };
 
-module.exports = { likePublication, getMyMatches };
+module.exports = { likePublication, getMyMatches, getMyLikes };

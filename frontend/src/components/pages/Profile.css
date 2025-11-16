@@ -141,6 +141,133 @@
     cursor: pointer;
 }
 
+.profile-posts__ratingSummary {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+    margin-top: 6px;
+}
+
+.profile-posts__actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.profile-posts__reviewsBtn {
+    border: none;
+    background: rgba(255, 255, 255, 0.1);
+    color: #f7f9ff;
+    border-radius: 14px;
+    padding: 6px 12px;
+    cursor: pointer;
+}
+
+.reviews-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.reviews-modal__card {
+    width: min(520px, 100%);
+    background: rgba(5, 8, 23, 0.95);
+    border-radius: 24px;
+    padding: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.reviews-modal__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+
+.reviews-modal__close {
+    border: none;
+    background: rgba(255, 255, 255, 0.15);
+    color: #fff;
+    border-radius: 12px;
+    padding: 6px 10px;
+    cursor: pointer;
+}
+
+.reviews-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.reviews-list__item {
+    padding: 10px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.reviews-list__info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.reviews-list__rating {
+    display: inline-flex;
+    gap: 4px;
+    align-items: center;
+    margin-top: 6px;
+    font-weight: 600;
+}
+
+.reviews-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.reviews-form textarea,
+.reviews-form select {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.05);
+    color: #f7f9ff;
+    padding: 8px 12px;
+}
+
+.star-rating {
+    display: inline-flex;
+    gap: 4px;
+    font-size: 24px;
+}
+
+.star-rating .star {
+    background: none;
+    border: none;
+    color: rgba(255, 255, 255, 0.35);
+    cursor: pointer;
+}
+
+.star-rating .star.is-active {
+    color: #ffc857;
+}
+
 .profile-calendar__list {
   list-style: none;
   padding: 0;

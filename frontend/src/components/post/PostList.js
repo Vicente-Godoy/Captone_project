@@ -1,12 +1,10 @@
-// src/components/post/PostList.js
-import React from "react";
 import PostCard from "./PostCard";
 
 export default function PostList({ posts = [], onLike, onViewProfile }) {
     if (!posts.length) {
         return (
             <div style={{ textAlign: "center", color: "#666" }}>
-                Aún no hay publicaciones.
+                Aun no hay publicaciones.
             </div>
         );
     }
@@ -14,8 +12,9 @@ export default function PostList({ posts = [], onLike, onViewProfile }) {
         <PostCard
             key={p.id}
             post={p}
-            onLike={() => onLike?.(p)}
+            onLike={(nextLiked) => onLike?.(p, nextLiked)}
             onViewProfile={() => onViewProfile?.(p)}
         />
     ));
 }
+

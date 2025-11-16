@@ -17,6 +17,7 @@ import Home from "./components/pages/Home";
 import Publicar from "./components/pages/Publicar";
 import Likes from "./components/pages/Likes";
 import Chat from "./components/pages/Chat";
+import Notifications from "./components/pages/Notifications";
 import Profile from "./components/pages/Profile";
 import BottomBar from "./components/BottomBar";
 
@@ -62,6 +63,7 @@ function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/publicar" element={<Publicar />} />
                 <Route path="/likes" element={<Likes />} />
+                <Route path="/notifications" element={<Notifications />} />
                 <Route path="/chat" element={<Chat />} />
                 <Route path="/chat/:id" element={<Chat />} />
                 <Route path="/profile" element={<Profile />} />

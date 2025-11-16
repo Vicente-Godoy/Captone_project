@@ -4,8 +4,10 @@ import API_BASE from "../../api";
 import { getAuth } from "firebase/auth";
 import { getMyCalendar, cancelCalendarEvent } from "../../services/calendar";
 import { fetchPublications, deletePublication } from "../../services/publications";
+import { getReviewsByPost, createReview } from "../../services/reviews";
 import { DEFAULT_AVATAR } from "../../utils/placeholders";
 import { toast } from "../../utils/toast";
+import { FaStar } from "react-icons/fa";
 import "./Profile.css";
 
 function Profile() {
@@ -16,6 +18,15 @@ function Profile() {
   const [loadingEvents, setLoadingEvents] = useState(false);
   const [posts, setPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(true);
+  const [reviewsModal, setReviewsModal] = useState({
+    open: false,
+    post: null,
+    reviews: [],
+    loading: false,
+    error: "",
+  });
+  const [reviewForm, setReviewForm] = useState({ rating: 5, comment: "" });
+  const [submittingReview, setSubmittingReview] = useState(false);
   const me = getAuth().currentUser;
   const isMe = !!(me && id && me.uid === id);
 
@@ -85,6 +96,77 @@ function Profile() {
     }
   };
 
+  const openReviewsModal = async (post) => {
+    setReviewsModal({
+      open: true,
+      post,
+      reviews: [],
+      loading: true,
+      error: "",
+    });
+    try {
+      const data = await getReviewsByPost(post.id);
+      setReviewsModal((prev) => ({
+        ...prev,
+        reviews: Array.isArray(data) ? data : [],
+        loading: false,
+      }));
+    } catch (error) {
+      setReviewsModal((prev) => ({
+        ...prev,
+        loading: false,
+        error: error.message || "No se pudieron obtener las reseñas.",
+      }));
+    }
+  };
+
+  const closeReviewsModal = () => {
+    setReviewsModal({
+      open: false,
+      post: null,
+      reviews: [],
+      loading: false,
+      error: "",
+    });
+    setReviewForm({ rating: 5, comment: "" });
+  };
+
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!reviewsModal.post) return;
+    try {
+      setSubmittingReview(true);
+      await createReview({
+        postId: reviewsModal.post.id,
+        rating: reviewForm.rating,
+        comment: reviewForm.comment,
+      });
+      toast.success("Gracias por tu reseña");
+      const data = await getReviewsByPost(reviewsModal.post.id);
+      setReviewsModal((prev) => ({
+        ...prev,
+        reviews: Array.isArray(data) ? data : [],
+        loading: false,
+        error: "",
+      }));
+      window.dispatchEvent(new Event("notifications-updated"));
+      try {
+        const all = await fetchPublications();
+        const mine = (all || []).filter(
+          (p) => p.creatorId === id || p.authorUid === id
+        );
+        setPosts(mine);
+      } catch (error) {
+        console.error("No se pudieron actualizar las publicaciones:", error);
+      }
+    } catch (error) {
+      console.error("No se pudo enviar la reseña:", error);
+      toast.error(error.message || "No se pudo enviar la reseña.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   useEffect(() => {
     if (!isMe || activeTab !== "calendario") return;
     let cancel = false;
@@ -112,7 +194,7 @@ function Profile() {
           <div className="profile-panel profile-posts">
             {loadingPosts && <p className="profile-posts__state">Cargando publicaciones...</p>}
             {!loadingPosts && posts.length === 0 && (
-              <p className="profile-posts__state">Este usuario aún no tiene publicaciones.</p>
+              <p className="profile-posts__state">Este usuario aun no tiene publicaciones.</p>
             )}
             {!loadingPosts && posts.length > 0 && (
               <ul className="profile-posts__list">
@@ -123,16 +205,25 @@ function Profile() {
                       {post.descripcion && (
                         <div className="profile-posts__desc">{post.descripcion}</div>
                       )}
+                      <div className="profile-posts__ratingSummary">
+                        <FaStar size={12} />
+                        <span>{Number(post.ratingAvg || 0).toFixed(1)} ({post.ratingCount || 0})</span>
+                      </div>
                     </div>
-                    {isMe && (
-                      <button
-                        className="profile-posts__more"
-                        onClick={() => handleDeletePost(post.id)}
-                        title="Eliminar publicación"
-                      >
-                        &#8942;
+                    <div className="profile-posts__actions">
+                      <button className="profile-posts__reviewsBtn" onClick={() => openReviewsModal(post)}>
+                        Ver resenas
                       </button>
-                    )}
+                      {isMe && (
+                        <button
+                          className="profile-posts__more"
+                          onClick={() => handleDeletePost(post.id)}
+                          title="Eliminar publicacion"
+                        >
+                          &#8942;
+                        </button>
+                      )}
+                    </div>
                   </li>
                 ))}
               </ul>
@@ -140,12 +231,14 @@ function Profile() {
           </div>
         );
       case "fotos":
-        return <div className="profile-panel">Aquí se mostrarán las fotos.</div>;
+        return <div className="profile-panel">Aqui se mostraran las fotos.</div>;
       case "calendario":
         return (
           <div className="profile-panel profile-calendar">
             {loadingEvents && <div className="profile-calendar__state">Cargando eventos...</div>}
-            {!loadingEvents && events.length === 0 && <div className="profile-calendar__state">No tienes eventos agendados.</div>}
+            {!loadingEvents && events.length === 0 && (
+              <div className="profile-calendar__state">No tienes eventos agendados.</div>
+            )}
             {!loadingEvents && events.length > 0 && (
               <ul className="profile-calendar__list">
                 {events.map((ev) => {
@@ -166,7 +259,7 @@ function Profile() {
                           onClick={async () => {
                             const otherName = ev.other?.nombre || "el otro usuario";
                             const ok = window.confirm(
-                              `¿Cancelar esta reunión con ${otherName}?\nEsto la quitará del calendario de ambos.`
+                              `Cancelar esta reunion con ${otherName}?\nEsto la quitara del calendario de ambos.`
                             );
                             if (!ok) return;
                             try {
@@ -188,8 +281,6 @@ function Profile() {
             )}
           </div>
         );
-      case "resenas":
-        return <div className="profile-panel">Aquí se mostrarán las reseñas.</div>;
       default:
         return null;
     }
@@ -238,16 +329,76 @@ function Profile() {
               Calendario
             </button>
           )}
-          <button
-            className={`profile-tab ${activeTab === "resenas" ? "is-active" : ""}`}
-            onClick={() => setActiveTab("resenas")}
-          >
-            Reseñas
-          </button>
         </div>
 
         {renderContent()}
       </div>
+      {reviewsModal.open && (
+        <div className="reviews-modal">
+          <div className="reviews-modal__card">
+            <div className="reviews-modal__header">
+              <div>
+                <h3>Reseñas de {reviewsModal.post?.title || "publicación"}</h3>
+                <p>{reviewsModal.post?.descripcion}</p>
+              </div>
+              <button className="reviews-modal__close" onClick={closeReviewsModal}>
+                Cerrar
+              </button>
+            </div>
+            {reviewsModal.loading && <p>Cargando reseñas...</p>}
+            {reviewsModal.error && <p style={{ color: "#ff9d9d" }}>{reviewsModal.error}</p>}
+            {!reviewsModal.loading && !reviewsModal.error && reviewsModal.reviews.length === 0 && (
+              <p>No hay reseñas todavía.</p>
+            )}
+            {!reviewsModal.loading && !reviewsModal.error && reviewsModal.reviews.length > 0 && (
+              <ul className="reviews-list">
+                {reviewsModal.reviews.map((rev) => (
+                  <li key={rev.id} className="reviews-list__item">
+                    <div className="reviews-list__info">
+                      <strong>{rev.student?.nombre || "Usuario"}</strong>
+                      <span>{rev.createdAt ? new Date(rev.createdAt).toLocaleString() : ""}</span>
+                    </div>
+                    <div className="reviews-list__rating">
+                      <FaStar size={12} /> {rev.rating?.toFixed?.(1) || rev.rating}
+                    </div>
+                    {rev.comment && <p>{rev.comment}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {!isMe && me?.uid && !reviewsModal.reviews.some((rev) => rev.studentUid === me.uid) && (
+              <form className="reviews-form" onSubmit={handleSubmitReview}>
+                <label>
+                  Calificación
+                  <div className="star-rating">
+                    {[1, 2, 3, 4, 5].map((value) => (
+                      <button
+                        type="button"
+                        key={value}
+                        className={`star ${reviewForm.rating >= value ? "is-active" : ""}`}
+                        onClick={() => setReviewForm((prev) => ({ ...prev, rating: value }))}
+                      >
+                        ★
+                      </button>
+                    ))}
+                  </div>
+                </label>
+                <label>
+                  Reseña (opcional)
+                  <textarea
+                    value={reviewForm.comment}
+                    onChange={(e) => setReviewForm((prev) => ({ ...prev, comment: e.target.value }))}
+                    rows={3}
+                  />
+                </label>
+                <button type="submit" className="btn-pill primary" disabled={submittingReview}>
+                  {submittingReview ? "Enviando..." : "Enviar reseña"}
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,33 @@
 const { db } = require('../config/firebase');
 const admin = require('firebase-admin');
 
+const normalizeText = (text = '') =>
+  text
+    .toString()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+const tokenize = (text = '') => {
+  const normalized = normalizeText(text);
+  if (!normalized) return [];
+  return normalized
+    .split(/\s+/)
+    .filter((token) => token.length > 2 && token.length < 40);
+};
+
+const buildSearchTokens = (title, content, tags = []) => {
+  const set = new Set();
+  tokenize(title).forEach((t) => set.add(t));
+  tokenize(content).forEach((t) => set.add(t));
+  (Array.isArray(tags) ? tags : [])
+    .flatMap((tag) => tokenize(tag))
+    .forEach((t) => set.add(t));
+  return Array.from(set);
+};
+
 /**
  * Crea una nueva publicación.
  * DENORMALIZACIÓN: Obtiene datos del usuario y los incrusta en la publicación.
@@ -35,6 +62,15 @@ const createPublication = async (req, res) => {
     console.log(`[CREATE PUBLICATION] User data retrieved:`, { nombre: userData.nombre });
     // --- Fin de la Denormalización ---
 
+    const tagList = Array.isArray(tags) ? tags : [];
+    const searchTokens = buildSearchTokens(finalTitle, finalContent, [
+      ...tagList,
+      nivel,
+      modalidad,
+      ciudad,
+      region,
+    ]);
+
     const newPublication = {
       creatorId: uid,
       // Datos denormalizados: Copiamos los datos del autor aquí
@@ -58,8 +94,11 @@ const createPublication = async (req, res) => {
       modalidad: modalidad || null,
       ciudad: ciudad || null,
       region: region || null,
-      tags: tags || [],
+      tags: tagList,
+      searchTokens,
       activo: true,
+      ratingCount: 0,
+      ratingSum: 0,
       fechaCreacion: admin.firestore.FieldValue.serverTimestamp(),
     };
 
@@ -115,7 +154,8 @@ const getAllPublications = async (_req, res) => {
       });
       return {
         id: doc.id,
-        ...data
+        ...data,
+        ratingAvg: data.ratingCount ? (data.ratingSum || 0) / data.ratingCount : 0,
       };
     });
 
@@ -125,6 +165,100 @@ const getAllPublications = async (_req, res) => {
   } catch (error) {
     console.error("[GET PUBLICATIONS] Error:", error);
     res.status(500).json({ error: 'No se pudieron obtener las publicaciones.' });
+  }
+};
+
+
+const runScoredSearch = (docs, tokens) => {
+  const normalizedTokens = tokens || [];
+  const results = [];
+  docs.forEach((doc) => {
+    const data = doc.data();
+    if (!data?.activo) return;
+
+    const title = data.title || data.titulo || '';
+    const description = data.content || data.descripcion || '';
+    const normalizedTitle = normalizeText(title);
+    const normalizedDescription = normalizeText(description);
+    const tagTokens = new Set(
+      (Array.isArray(data.tags) ? data.tags : []).flatMap((tag) => tokenize(tag))
+    );
+
+    let score = 0;
+    normalizedTokens.forEach((tok) => {
+      if (!tok) return;
+      if (normalizedTitle.includes(tok)) score += 3;
+      if (normalizedDescription.includes(tok)) score += 2;
+      if (tagTokens.has(tok)) score += 2;
+    });
+
+    const ratingCount = Number(data.ratingCount) || 0;
+    const ratingSum = Number(data.ratingSum) || 0;
+    const ratingAvg = ratingCount ? ratingSum / ratingCount : 0;
+    score += ratingAvg * Math.log2(ratingCount + 2);
+
+    const createdAt = data.fechaCreacion?.toDate
+      ? data.fechaCreacion.toDate().getTime()
+      : data.fechaCreacion?._seconds
+      ? data.fechaCreacion._seconds * 1000
+      : 0;
+    if (createdAt) {
+      const daysAgo = (Date.now() - createdAt) / (1000 * 60 * 60 * 24);
+      if (daysAgo < 7) score += 1.5;
+      else if (daysAgo < 30) score += 0.5;
+    }
+
+    results.push({
+      id: doc.id,
+      ...data,
+      ratingAvg,
+      _score: score,
+      _createdAt: createdAt,
+      _ratingCount: ratingCount,
+    });
+  });
+
+  results.sort(
+    (a, b) =>
+      (b._score || 0) - (a._score || 0) ||
+      (b.ratingAvg || 0) - (a.ratingAvg || 0) ||
+      (b._ratingCount || 0) - (a._ratingCount || 0) ||
+      (b._createdAt || 0) - (a._createdAt || 0)
+  );
+
+  return results.map(({ _score, _createdAt, _ratingCount, ...rest }) => rest);
+};
+
+const searchPublications = async (req, res) => {
+  try {
+    const query = req.query?.q || '';
+    const tokens = tokenize(query);
+    if (tokens.length === 0) {
+      return getAllPublications(req, res);
+    }
+
+    const limitedTokens = tokens.slice(0, 10);
+    let snapshot = await db
+      .collection('publications')
+      .where('searchTokens', 'array-contains-any', limitedTokens)
+      .limit(100)
+      .get();
+
+    let docs = snapshot.docs;
+    if (!docs.length) {
+      snapshot = await db
+        .collection('publications')
+        .orderBy('fechaCreacion', 'desc')
+        .limit(100)
+        .get();
+      docs = snapshot.docs;
+    }
+
+    const scored = runScoredSearch(docs, tokens);
+    return res.status(200).json(scored.slice(0, 50));
+  } catch (error) {
+    console.error('Error en searchPublications:', error);
+    return res.status(500).json({ error: 'No se pudieron buscar las publicaciones.' });
   }
 };
 
@@ -140,7 +274,12 @@ const getPublicationById = async (req, res) => {
       return res.status(404).json({ error: 'Publicación no encontrada.' });
     }
 
-    res.status(200).json({ id: doc.id, ...doc.data() });
+    const data = doc.data();
+    res.status(200).json({
+      id: doc.id,
+      ...data,
+      ratingAvg: data.ratingCount ? (data.ratingSum || 0) / data.ratingCount : 0,
+    });
 
   } catch (error) {
     console.error("Error al obtener publicación por ID:", error);
@@ -179,6 +318,7 @@ const deletePublication = async (req, res) => {
 module.exports = {
   createPublication,
   getAllPublications,
+  searchPublications,
   getPublicationById,
   deletePublication,
 };

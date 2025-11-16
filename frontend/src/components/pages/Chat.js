@@ -5,6 +5,8 @@ import { db } from "../../lib/firebaseClient";
 import { getAuth } from "firebase/auth";
 import { getMatches } from "../../services/interactions";
 import { createCalendarEventFromSchedule } from "../../services/calendar";
+import { markConversationSeen } from "../../services/conversations";
+import { createMeetingRequestNotification, respondMeetingRequest } from "../../services/notifications";
 import { DEFAULT_AVATAR } from "../../utils/placeholders";
 import "./Chat.css";
 
@@ -88,6 +90,19 @@ function Chat() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    if (!id || !me) return;
+    const mark = async () => {
+      try {
+        await markConversationSeen(id);
+        window.dispatchEvent(new Event("chats-updated"));
+      } catch (error) {
+        console.error("No se pudo marcar conversación como vista:", error);
+      }
+    };
+    mark();
+  }, [id, me]);
+
   const canSend = useMemo(() => !!(me && id && text.trim()), [me, id, text]);
 
   const send = async () => {
@@ -146,13 +161,34 @@ function Chat() {
       sentAt: serverTimestamp(),
     };
 
-    await addDoc(collection(db, "conversations", id, "messages"), payload);
+    const docRef = await addDoc(collection(db, "conversations", id, "messages"), payload);
     await setDoc(
       doc(db, "conversations", id),
       { lastMessageText: textMsg, lastMessageAt: serverTimestamp() },
       { merge: true }
     );
+    try {
+      await createMeetingRequestNotification({ conversationId: id, proposalMessageId: docRef.id });
+      window.dispatchEvent(new Event("notifications-updated"));
+    } catch (err) {
+      console.error("No se pudo crear la notificacion de reunion:", err);
+    }
     setShowScheduler(false);
+  };
+
+  const syncMeetingNotification = async (status, proposalMessageId) => {
+    if (!["accepted", "rejected"].includes(status)) return;
+    if (!id || !proposalMessageId) return;
+    try {
+      await respondMeetingRequest({
+        conversationId: id,
+        proposalMessageId,
+        status,
+      });
+      window.dispatchEvent(new Event("notifications-updated"));
+    } catch (err) {
+      console.warn("No se pudo sincronizar la notificacion de reunion:", err);
+    }
   };
 
   // Buscar si ya existe respuesta para una propuesta
@@ -218,6 +254,7 @@ function Chat() {
         }
       }
     }
+    await syncMeetingNotification(status, msg.id);
   };
 
   if (!id) {

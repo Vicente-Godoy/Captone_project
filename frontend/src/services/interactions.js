@@ -1,34 +1,34 @@
 import API_BASE from "../api";
 import { getAuth } from "firebase/auth";
 
-export async function likePublication(publicationId) {
+async function authFetch(path, options = {}) {
   const user = getAuth().currentUser;
-  if (!user) throw new Error('No hay usuario autenticado');
-  const idToken = await user.getIdToken();
-
-  const res = await fetch(`${API_BASE}/api/interactions/like`, {
-    method: 'POST',
+  if (!user) throw new Error("No hay usuario autenticado");
+  const token = await user.getIdToken();
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
     headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${idToken}`,
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
     },
-    body: JSON.stringify({ publicationId }),
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || 'No se pudo registrar el like');
-  return data; // { liked, matched, matchId }
+  if (!res.ok) throw new Error(data?.error || `Error ${res.status}`);
+  return data;
+}
+
+export async function likePublication(publicationId) {
+  return authFetch("/api/interactions/like", {
+    method: "POST",
+    body: JSON.stringify({ publicationId }),
+  });
 }
 
 export async function getMatches() {
-  const user = getAuth().currentUser;
-  if (!user) throw new Error('No hay usuario autenticado');
-  const idToken = await user.getIdToken();
-
-  const res = await fetch(`${API_BASE}/api/interactions/matches`, {
-    headers: { Authorization: `Bearer ${idToken}` },
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || 'No se pudieron obtener los matches');
-  return data; // array
+  return authFetch("/api/interactions/matches");
 }
 
+export async function getMyLikes() {
+  return authFetch("/api/interactions/likes");
+}

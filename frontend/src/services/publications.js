@@ -53,6 +53,19 @@ export async function fetchPublications() {
     return res.json(); // array de publicaciones
 }
 
+export async function searchPublications(query) {
+    const url = new URL(`${API_BASE}/api/publications/search`);
+    if (query) {
+        url.searchParams.set("q", query);
+    }
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+        const txt = await res.text().catch(() => "");
+        throw new Error(txt || `Error ${res.status}`);
+    }
+    return res.json();
+}
+
 export async function deletePublication(id) {
     const auth = getAuth();
     const user = auth.currentUser;

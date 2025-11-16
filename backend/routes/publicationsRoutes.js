@@ -6,6 +6,7 @@ const authMiddleware = require('../middleware/authMiddleware');
 // --- Rutas Públicas ---
 // Cualquiera puede ver el listado de publicaciones o una publicación específica.
 router.get('/', publicationsController.getAllPublications);
+router.get('/search', publicationsController.searchPublications);
 router.get('/:publicationId', publicationsController.getPublicationById);
 
 // --- Rutas Protegidas ---
@@ -14,4 +15,3 @@ router.post('/', authMiddleware, publicationsController.createPublication);
 router.delete('/:publicationId', authMiddleware, publicationsController.deletePublication);
 
 module.exports = router;
-
