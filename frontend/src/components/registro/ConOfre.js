@@ -29,8 +29,8 @@ export default function ConOfre() {
             &#8249;
           </button>
           <div>
-            <h1 className="co-title">¿Qué le ofreces a SkillSwapp?</h1>
-            <p className="co-subtitle">Cuéntanos qué habilidad compartirás con la comunidad.</p>
+            <h1 className="co-title">Que le ofreces a SkillSwapp?</h1>
+            <p className="co-subtitle">Cuentanos que habilidad compartiras con la comunidad.</p>
           </div>
         </header>
 
@@ -59,4 +59,3 @@ export default function ConOfre() {
     </div>
   );
 }
-

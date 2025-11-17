@@ -6,6 +6,8 @@ import { onAuthChange } from "./services/auth";
 
 // Auth / registro
 import Login from "./components/login/Login";
+import ForgotPassword from "./components/login/ForgotPassword";
+import ResetPassword from "./components/login/ResetPassword";
 import Registro from "./components/registro/Registro";
 import ConOfre from "./components/registro/ConOfre";
 import Etiqueta1 from "./components/registro/Etiqueta1";
@@ -43,6 +45,8 @@ function App() {
       <RegistroFlowProvider>
         <div className={`app-shell ${loggedIn ? "app-shell-auth" : "app-shell-public"}`}>
           <Routes>
+            <Route path="/recuperar" element={<ForgotPassword />} />
+            <Route path="/restablecer" element={<ResetPassword />} />
             {!loggedIn ? (
               <Fragment>
                 {/* Login por defecto */}

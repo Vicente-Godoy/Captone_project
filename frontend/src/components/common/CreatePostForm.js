@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { getAuth } from 'firebase/auth';
 import { createPublication } from '../../services/publications';
-import { uploadPublicationImage } from '../../services/storage';
+import { uploadPublicationImage, MAX_IMAGE_BYTES } from '../../services/storage';
 import { toast } from '../../utils/toast';
 
 export default function CreatePostForm({ onPostCreated }) {
@@ -28,6 +28,12 @@ export default function CreatePostForm({ onPostCreated }) {
             URL.revokeObjectURL(filePreview);
         }
         if (selected) {
+            if (selected.size > MAX_IMAGE_BYTES) {
+                toast.error('La imagen supera el límite de 10MB');
+                event.target.value = '';
+                setFile(null);
+                return;
+            }
             setFilePreview(URL.createObjectURL(selected));
         } else {
             setFilePreview(null);

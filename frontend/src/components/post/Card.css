@@ -68,15 +68,65 @@
 
 .card__desc {
     margin: 8px 0 12px;
-    color: rgba(255, 255, 255, 0.72);
+    color: rgba(255, 255, 255, 0.75);
     font-size: 13px;
     line-height: 1.4;
+    text-transform: none;
+}
+
+.card__tags {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 10px;
+}
+
+.card__tagGroup {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+}
+
+.card__tagLabel {
+    font-size: 12px;
     text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.card__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.card__chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    background: rgba(0, 217, 138, 0.18);
+    border: 1px solid rgba(0, 217, 138, 0.4);
+    color: #dffcf2;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.card__chip--secondary {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.25);
 }
 
 .card__actions {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.card__actionsRight {
+    display: flex;
+    gap: 10px;
     align-items: center;
 }
 
@@ -116,6 +166,49 @@
 
 .card__likePill.is-liked .card__likeIcon {
     color: #fff;
+}
+
+.card__toggleBtn {
+    border: none;
+    border-radius: 16px;
+    padding: 8px 14px;
+    background: rgba(255, 255, 255, 0.09);
+    color: #f7f9ff;
+    cursor: pointer;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.card__toggleBtn:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.card__details {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.card__section {
+    margin-bottom: 12px;
+}
+
+.card__section h4 {
+    margin: 0 0 6px;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.card__section--grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 6px;
 }
 
 @media (max-width: 560px) {

@@ -1,10 +1,16 @@
 import PostCard from "./PostCard";
 
-export default function PostList({ posts = [], onLike, onViewProfile }) {
+export default function PostList({
+    posts = [],
+    onLike,
+    onViewProfile,
+    expandedId,
+    onToggle,
+}) {
     if (!posts.length) {
         return (
             <div style={{ textAlign: "center", color: "#666" }}>
-                Aun no hay publicaciones.
+                Aún no hay publicaciones.
             </div>
         );
     }
@@ -12,9 +18,10 @@ export default function PostList({ posts = [], onLike, onViewProfile }) {
         <PostCard
             key={p.id}
             post={p}
+            expanded={expandedId === p.id}
+            onToggle={() => onToggle?.(p)}
             onLike={(nextLiked) => onLike?.(p, nextLiked)}
             onViewProfile={() => onViewProfile?.(p)}
         />
     ));
 }
-

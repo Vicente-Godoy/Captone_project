@@ -3,11 +3,13 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useRegistroFlow } from "./RegistroFlow";
 import API_BASE from "../../api";
-import { auth, storage } from "../../lib/firebaseClient";
+import { auth } from "../../lib/firebaseClient";
 import { getIdToken } from "../../services/auth";
 import { toast } from "../../utils/toast";
-import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import "./foto.css";
+import { uploadAvatarImage, MAX_IMAGE_BYTES } from "../../services/storage";
+import { optimizeImageFile } from "../../utils/image";
+import { updateProfile } from "firebase/auth";
 
 export default function Foto() {
   const navigate = useNavigate();
@@ -19,58 +21,6 @@ export default function Foto() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState(null);
   const uploadPromiseRef = useRef(null);
-  const MAX_SIZE = 5 * 1024 * 1024; // 5MB
-
-  const optimizeImageFile = (rawFile) =>
-    new Promise((resolve, reject) => {
-      if (!rawFile.type?.startsWith("image/")) {
-        reject(new Error("Archivo no es imagen"));
-        return;
-      }
-      if (rawFile.size <= 1.5 * 1024 * 1024) {
-        resolve(rawFile);
-        return;
-      }
-
-      const url = URL.createObjectURL(rawFile);
-      const img = new Image();
-      img.onload = () => {
-        URL.revokeObjectURL(url);
-        const canvas = document.createElement("canvas");
-        const maxDim = 1280;
-        let { width, height } = img;
-        if (width > height && width > maxDim) {
-          height = Math.round((height * maxDim) / width);
-          width = maxDim;
-        } else if (height > maxDim) {
-          width = Math.round((width * maxDim) / height);
-          height = maxDim;
-        }
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            if (!blob) {
-              reject(new Error("No se pudo optimizar la imagen"));
-              return;
-            }
-            const optimizedFile = new File([blob], rawFile.name, {
-              type: "image/jpeg",
-            });
-            resolve(optimizedFile);
-          },
-          "image/jpeg",
-          0.85
-        );
-      };
-      img.onerror = () => {
-        URL.revokeObjectURL(url);
-        reject(new Error("No se pudo leer la imagen"));
-      };
-      img.src = url;
-    });
 
   const startAvatarUpload = async (rawFile) => {
     const uid = auth.currentUser?.uid;
@@ -79,11 +29,11 @@ export default function Foto() {
     setUploadedAvatarUrl(null);
     try {
       const optimized = await optimizeImageFile(rawFile);
-      uploadPromiseRef.current = uploadAvatarAndGetUrl(uid, optimized);
+      uploadPromiseRef.current = uploadAvatarImage(optimized, uid);
       const url = await uploadPromiseRef.current;
       setUploadedAvatarUrl(url);
     } catch (err) {
-      console.error("Pre-upload avatar error:", err);
+      console.error("Error preparando avatar:", err);
       setUploadedAvatarUrl(null);
     } finally {
       setUploadingAvatar(false);
@@ -99,8 +49,8 @@ export default function Foto() {
       toast.error("El archivo debe ser una imagen.");
       return;
     }
-    if (f.size > MAX_SIZE) {
-      toast.error("La imagen supera los 5MB.");
+    if (f.size > MAX_IMAGE_BYTES) {
+      toast.error("La imagen supera el limite de 10MB.");
       return;
     }
 
@@ -127,29 +77,26 @@ export default function Foto() {
     };
   }, [preview]);
 
-  const uploadAvatarAndGetUrl = (uid, f) =>
-    new Promise((resolve, reject) => {
-      const timestamp = Date.now();
-      const ext = (f.name.split(".").pop() || "jpg").toLowerCase();
-      const sanitizedName = f.name.replace(/[^a-zA-Z0-9.\-_]/g, "_");
-      const avatarRef = ref(storage, `uploads/avatars/${uid}/${timestamp}-${sanitizedName || `avatar.${ext}`}`);
-      const metadata = { contentType: f.type?.startsWith("image/") ? f.type : "image/jpeg" };
-      const task = uploadBytesResumable(avatarRef, f, metadata);
-
-      task.on(
-        "state_changed",
-        () => {},
-        (err) => reject(err),
-        async () => {
-          try {
-            const url = await getDownloadURL(avatarRef);
-            resolve(url);
-          } catch (e) {
-            reject(e);
-          }
-        }
-      );
+  const persistAvatar = async (fotoUrlFinal, token) => {
+    if (!fotoUrlFinal || !token) return;
+    await fetch(`${API_BASE}/api/users/me`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ fotoUrl: fotoUrlFinal }),
     });
+    const currentUser = auth.currentUser;
+    if (currentUser) {
+      try {
+        await updateProfile(currentUser, { photoURL: fotoUrlFinal });
+      } catch (error) {
+        console.warn("No se pudo refrescar photoURL:", error);
+      }
+    }
+    setRegistroData((prev) => ({ ...prev, foto: fotoUrlFinal }));
+  };
 
   const finish = async () => {
     try {
@@ -158,7 +105,7 @@ export default function Foto() {
       const uid = auth.currentUser?.uid;
 
       if (!token || !uid) {
-        toast.error("Debes iniciar sesión para publicar.");
+        toast.error("Debes iniciar sesion para publicar.");
         navigate("/");
         return;
       }
@@ -167,26 +114,15 @@ export default function Foto() {
       if (!fotoUrlFinal && file) {
         try {
           const optimized = await optimizeImageFile(file);
-          fotoUrlFinal = await uploadAvatarAndGetUrl(uid, optimized);
-
-          const resProfile = await fetch(`${API_BASE}/api/users/me`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ fotoUrl: fotoUrlFinal }),
-          });
-
-          if (!resProfile.ok) {
-            const txt = await resProfile.text();
-            console.warn("Actualizar perfil falló:", txt);
-          }
-          setRegistroData((prev) => ({ ...prev, foto: fotoUrlFinal }));
-        } catch (e) {
-          console.error("Upload avatar falló:", e);
-          toast.error("La publicación continuará, pero la foto de perfil no se pudo subir.");
+          fotoUrlFinal = await uploadAvatarImage(optimized, uid);
+        } catch (error) {
+          console.error("Upload avatar fallo:", error);
+          toast.error("La publicacion seguira sin foto de perfil.");
         }
+      }
+
+      if (fotoUrlFinal) {
+        await persistAvatar(fotoUrlFinal, token);
       }
 
       const payload = {
@@ -198,6 +134,7 @@ export default function Foto() {
         ciudad: registroData.ciudad || null,
         region: registroData.region || null,
         tags: registroData.etiquetas || [],
+        interestTags: registroData.intereses || [],
       };
 
       const resPub = await fetch(`${API_BASE}/api/publications`, {
@@ -211,10 +148,10 @@ export default function Foto() {
 
       if (!resPub.ok) {
         const txt = await resPub.text();
-        throw new Error(`Error al crear publicación: ${txt}`);
+        throw new Error(`Error al crear publicacion: ${txt}`);
       }
 
-      toast.success("Perfil actualizado y publicación creada.");
+      toast.success("Perfil actualizado y publicacion creada.");
       navigate("/");
     } catch (e) {
       console.error(e);
@@ -231,7 +168,9 @@ export default function Foto() {
           &#8249; Volver al Home
         </button>
         <h2 className="foto-title">Sube tu foto</h2>
-        <p className="foto-subtitle">Personaliza tu perfil con una imagen. Puedes cambiarla después.</p>
+        <p className="foto-subtitle">
+          Personaliza tu perfil con una imagen. Puedes cambiarla despues.
+        </p>
 
         <label className="foto-input">
           <span>Elegir archivo</span>
@@ -239,11 +178,7 @@ export default function Foto() {
         </label>
 
         {preview && (
-          <img
-            src={preview}
-            alt="vista previa"
-            className="foto-preview"
-          />
+          <img src={preview} alt="vista previa" className="foto-preview" />
         )}
 
         <button
@@ -257,4 +192,3 @@ export default function Foto() {
     </div>
   );
 }
-

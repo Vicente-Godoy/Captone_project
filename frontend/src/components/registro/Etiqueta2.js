@@ -9,19 +9,19 @@ const OPCIONES = [
   "CIENCIAS",
   "FITNESS",
   "ARTES",
-  "MÚSICA",
+  "MUSICA",
   "IDIOMAS",
-  "FILOSOFÍA",
-  "COMPUTACIÓN",
-  "PROGRAMACIÓN",
+  "FILOSOFIA",
+  "COMPUTACION",
+  "PROGRAMACION",
   "ESCRITURA",
   "COCINA",
   "FINANZAS",
   "MODA",
-  "ROBÓTICA",
-  "QUÍMICA",
+  "ROBOTICA",
+  "QUIMICA",
   "HISTORIA",
-  "MATEMÁTICAS",
+  "MATEMATICAS",
   "LITERATURA",
 ];
 
@@ -52,8 +52,8 @@ export default function Etiqueta2() {
             &#8249;
           </button>
           <div>
-            <h1 className="e2-title">¿Qué temas te interesan?</h1>
-            <p className="e2-sub">Puedes marcar más de una opción.</p>
+            <h1 className="e2-title">Que temas te interesan?</h1>
+            <p className="e2-sub">Puedes marcar mas de una opcion.</p>
           </div>
         </header>
 
@@ -79,4 +79,3 @@ export default function Etiqueta2() {
     </div>
   );
 }
-

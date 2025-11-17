@@ -9,9 +9,17 @@ import {
     GoogleAuthProvider,
     signInWithPopup,
     sendEmailVerification,
+    sendPasswordResetEmail,
+    verifyPasswordResetCode,
+    confirmPasswordReset,
 } from "firebase/auth";
 import API_BASE from "../api";
 import { toast } from "../utils/toast";
+
+const APP_ORIGIN =
+    typeof window !== "undefined" && window.location?.origin
+        ? window.location.origin
+        : "http://localhost:3000";
 
 /**
  * Sincroniza el usuario con el backend después de autenticación Firebase
@@ -178,4 +186,25 @@ export async function syncCurrentUser() {
         toast.error(`Error sincronizando usuario: ${error.message}`);
         return false;
     }
+}
+
+const resetActionSettings = {
+    url: `${APP_ORIGIN}/restablecer`,
+    handleCodeInApp: true,
+};
+
+export async function requestPasswordReset(email) {
+    if (!email) throw new Error("Ingresa un correo");
+    await sendPasswordResetEmail(auth, email.trim(), resetActionSettings);
+}
+
+export async function verifyResetCode(oobCode) {
+    if (!oobCode) throw new Error("Código inválido");
+    return verifyPasswordResetCode(auth, oobCode);
+}
+
+export async function applyPasswordReset(oobCode, newPassword) {
+    if (!oobCode) throw new Error("Código inválido");
+    if (!newPassword) throw new Error("Ingresa una nueva contraseña");
+    return confirmPasswordReset(auth, oobCode, newPassword);
 }

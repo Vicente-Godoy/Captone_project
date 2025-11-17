@@ -33,6 +33,19 @@
     transform: translateY(-1px);
 }
 
+.bb-avatarBtn {
+    padding: 4px;
+}
+
+.bb-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    object-fit: cover;
+    background: rgba(0, 0, 0, 0.2);
+}
+
 .notifications-btn {
     position: relative;
 }

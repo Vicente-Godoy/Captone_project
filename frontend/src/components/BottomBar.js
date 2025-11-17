@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { getAuth } from "firebase/auth";
-import { FaHome, FaHeart, FaBell, FaUser } from "react-icons/fa";
+import { FaHome, FaHeart, FaBell } from "react-icons/fa";
 import PostButton from "./PostButton";
 import "./BottomBar.css";
 import { getNotifications } from "../services/notifications";
 import { getMatches } from "../services/interactions";
+import API_BASE from "../api";
+import { DEFAULT_AVATAR } from "../utils/placeholders";
 
 export default function BottomBar() {
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadChats, setUnreadChats] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState(DEFAULT_AVATAR);
 
   const refreshNotifications = async () => {
     try {
@@ -69,6 +72,37 @@ export default function BottomBar() {
     };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    const auth = getAuth();
+    const loadAvatar = async (user) => {
+      if (!mounted) return;
+      if (!user) {
+        setAvatarUrl(DEFAULT_AVATAR);
+        return;
+      }
+      let next = user.photoURL;
+      if (!next) {
+        try {
+          const res = await fetch(`${API_BASE}/api/users/${user.uid}`);
+          if (res.ok) {
+            const data = await res.json();
+            next = data.fotoUrl;
+          }
+        } catch (error) {
+          console.warn("Avatar fallback no disponible:", error);
+        }
+      }
+      setAvatarUrl(next || DEFAULT_AVATAR);
+    };
+    const unsubscribe = auth.onAuthStateChanged(loadAvatar);
+    loadAvatar(auth.currentUser);
+    return () => {
+      mounted = false;
+      unsubscribe?.();
+    };
+  }, []);
+
   const goToMyProfile = () => {
     const uid = getAuth().currentUser?.uid;
     if (uid) {
@@ -106,11 +140,16 @@ export default function BottomBar() {
       <button
         type="button"
         onClick={goToMyProfile}
-        className="bb-link"
+        className="bb-link bb-avatarBtn"
         aria-label="Mi perfil"
         title="Mi perfil"
       >
-        <FaUser size={22} />
+        <img
+          src={avatarUrl || DEFAULT_AVATAR}
+          alt="Avatar"
+          className="bb-avatar"
+          onError={(event) => (event.currentTarget.src = DEFAULT_AVATAR)}
+        />
       </button>
 
       {/* FAB centrado */}

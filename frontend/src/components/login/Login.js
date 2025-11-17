@@ -1,35 +1,34 @@
 // src/components/login/Login.js
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import "./login.css";
-import { loginWithPassword, loginWithGoogle } from "../../services/auth"; // solo login
+import { loginWithPassword, loginWithGoogle } from "../../services/auth";
 
 function Login({ onLogin }) {
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [err, setErr] = useState("");
+  const [error, setError] = useState("");
 
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErr("");
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError("");
 
-    if (!user || !pass) {
-      setErr("Ingresa email y contraseA�a.");
+    if (!email || !password) {
+      setError("Ingresa correo y contrasena.");
       return;
     }
 
     try {
       setLoading(true);
-      await loginWithPassword(user, pass);
-
+      await loginWithPassword(email.trim(), password);
       onLogin?.(true);
       navigate("/");
-    } catch (e) {
-      console.error(e);
-      setErr(e.message || "No se pudo iniciar sesiA3n.");
+    } catch (err) {
+      console.error(err);
+      setError(err.message || "No se pudo iniciar sesion.");
     } finally {
       setLoading(false);
     }
@@ -38,7 +37,6 @@ function Login({ onLogin }) {
   return (
     <div className="login-shell">
       <div className="login-page">
-        {/* Header / logo + marca */}
         <header className="login-header">
           <div className="logo-circle">
             <span>SS</span>
@@ -49,47 +47,43 @@ function Login({ onLogin }) {
           </div>
         </header>
 
-        {/* Texto bienvenida */}
         <div className="welcome">
           <h2>Bienvenido</h2>
-          <p>Inicia sesiA3n para continuar</p>
+          <p>Inicia sesion para continuar</p>
         </div>
 
-        {/* Tarjeta principal */}
         <div className="card login-panel">
           <form onSubmit={handleSubmit} className="login-form">
-            <div className="input-wrap">
-              <span className="icon" aria-hidden>
-                �?�
-              </span>
+            <label className="input-wrap" htmlFor="login-email">
+              <span className="input-label">Correo electronico</span>
               <input
+                id="login-email"
                 type="email"
-                placeholder="Correo electrA3nico"
-                value={user}
-                onChange={(e) => setUser(e.target.value)}
+                placeholder="nombre@correo.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 autoComplete="email"
               />
-            </div>
+            </label>
 
-            <div className="input-wrap">
-              <span className="icon" aria-hidden>
-                �?�
-              </span>
+            <label className="input-wrap" htmlFor="login-pass">
+              <span className="input-label">Contrasena</span>
               <input
+                id="login-pass"
                 type="password"
-                placeholder="ContraseA�a"
-                value={pass}
-                onChange={(e) => setPass(e.target.value)}
+                placeholder="Tu contrasena"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 autoComplete="current-password"
               />
-            </div>
+            </label>
 
-            {err && <p className="form-error">{err}</p>}
+            {error && <p className="form-error">{error}</p>}
 
             <button
               type="submit"
               className="btn-pill primary"
-              disabled={loading || !user || !pass}
+              disabled={loading || !email || !password}
             >
               {loading ? "Ingresando..." : "Ingresar"}
             </button>
@@ -98,15 +92,15 @@ function Login({ onLogin }) {
               type="button"
               className="btn-pill google"
               onClick={async () => {
-                setErr("");
+                setError("");
                 try {
                   setLoading(true);
                   await loginWithGoogle();
                   onLogin?.(true);
                   navigate("/");
-                } catch (e) {
-                  console.error(e);
-                  setErr(e.message || "No se pudo iniciar sesión con Google.");
+                } catch (err) {
+                  console.error(err);
+                  setError(err.message || "No se pudo iniciar sesion con Google.");
                 } finally {
                   setLoading(false);
                 }
@@ -116,7 +110,6 @@ function Login({ onLogin }) {
               {loading ? "Procesando..." : "Continuar con Google"}
             </button>
 
-            {/* Solo redirige al wizard de registro */}
             <button
               type="button"
               className="btn-pill secondary"
@@ -129,9 +122,9 @@ function Login({ onLogin }) {
         </div>
 
         <div className="login-footer">
-          <a className="forgot" href="#recuperar">
-            Recupera tu contraseA�a
-          </a>
+          <Link className="forgot" to="/recuperar">
+            Recupera tu contrasena
+          </Link>
         </div>
       </div>
     </div>

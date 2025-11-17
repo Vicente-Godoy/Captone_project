@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useParams, useNavigate, Navigate } from "react-router-dom";
 import { collection, addDoc, onSnapshot, orderBy, query, serverTimestamp, doc, setDoc, where, Timestamp } from "firebase/firestore";
 import { db } from "../../lib/firebaseClient";
@@ -21,14 +21,14 @@ function Chat() {
   const [conversations, setConversations] = useState([]); // listado con lastMessage
   const [messages, setMessages] = useState([]);
   const [text, setText] = useState("");
-  const [other, setOther] = useState(null); // para header de conversación
+  const [other, setOther] = useState(null); // para header de conversaci├│n
   const bottomRef = useRef(null);
 
-  // UI para agendar reunión
+  // UI para agendar reuni├│n
   const [showScheduler, setShowScheduler] = useState(false);
   const [scheduleValue, setScheduleValue] = useState(""); // ISO para input datetime-local
 
-  // Cargar lista de matches si no hay conversación seleccionada
+  // Cargar lista de matches si no hay conversaci├│n seleccionada
   useEffect(() => {
     if (id) return;
     (async () => {
@@ -42,7 +42,7 @@ function Chat() {
     })();
   }, [id]);
 
-  // Suscripción a conversaciones del usuario (para mostrar último mensaje en lista)
+  // Suscripci├│n a conversaciones del usuario (para mostrar ├║ltimo mensaje en lista)
   useEffect(() => {
     if (id) return; // solo en lista
     if (!me) return;
@@ -59,7 +59,7 @@ function Chat() {
     return () => unsub();
   }, [id, me]);
 
-  // Suscribirse a mensajes si hay conversación
+  // Suscribirse a mensajes si hay conversaci├│n
   useEffect(() => {
     if (!id) return;
     const q = query(
@@ -72,7 +72,7 @@ function Chat() {
     return () => unsub();
   }, [id]);
 
-  // Obtener info del otro usuario para el header cuando hay conversación
+  // Obtener info del otro usuario para el header cuando hay conversaci├│n
   useEffect(() => {
     if (!id) return;
     (async () => {
@@ -97,7 +97,7 @@ function Chat() {
         await markConversationSeen(id);
         window.dispatchEvent(new Event("chats-updated"));
       } catch (error) {
-        console.error("No se pudo marcar conversación como vista:", error);
+        console.error("No se pudo marcar conversaci├│n como vista:", error);
       }
     };
     mark();
@@ -121,7 +121,7 @@ function Chat() {
       type: "text",
     };
     await addDoc(collection(db, "conversations", id, "messages"), payload);
-    // Denormalizar último mensaje en conversation
+    // Denormalizar ├║ltimo mensaje en conversation
     await setDoc(
       doc(db, "conversations", id),
       { lastMessageText: payload.text, lastMessageAt: serverTimestamp() },
@@ -159,7 +159,7 @@ function Chat() {
     const [hh, mm] = timePart.split(":").map((x) => parseInt(x, 10));
     const when = new Date(y, m - 1, d, hh, mm, 0);
 
-    const textMsg = `Reunión propuesta: ${formatDateTime(when)}`;
+    const textMsg = `Reuni├│n propuesta: ${formatDateTime(when)}`;
     const payload = {
       fromUid: me.uid,
       text: textMsg,
@@ -235,8 +235,8 @@ function Chat() {
       // Fallback: crear un mensaje de respuesta (no modifica el original)
       const responseText =
         status === "accepted"
-          ? "Reunión aceptada"
-          : "Reunión cancelada";
+          ? "Reuni├│n aceptada"
+          : "Reuni├│n cancelada";
       const payload = {
         fromUid: me?.uid,
         type: "schedule_response",
@@ -294,7 +294,7 @@ function Chat() {
         </header>
         {loadingMatches && <div className="info">Cargando...</div>}
         {!loadingMatches && items.length === 0 && (
-          <div className="info">Aún no tienes conversaciones.</div>
+          <div className="info">A├║n no tienes conversaciones.</div>
         )}
         <div className="chat-items">
           {items.map((it) => {
@@ -304,7 +304,7 @@ function Chat() {
                 <img className="avatar" src={otherUser?.fotoUrl || DEFAULT_AVATAR} alt={otherUser?.nombre || 'usuario'} />
                 <div className="chat-item-body">
                   <div className="name">{otherUser?.nombre || 'Usuario'}</div>
-                  <div className="preview">{it.lastMessageText || 'Sin mensajes aún'}</div>
+                  <div className="preview">{it.lastMessageText || 'Sin mensajes a├║n'}</div>
                 </div>
               </div>
             );
@@ -368,21 +368,21 @@ function Chat() {
       </div>
 
       <div className="chat-input">
-        <button className="plus" title="Más">+</button>
-        <button className="schedule" title="Agendar reunión" onClick={openScheduler}>Agenda</button>
+        <button className="plus" title="Mas">+</button>
+        <button className="schedule" title="Agendar reuni├│n" onClick={openScheduler}>Agenda</button>
         <input
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Escribe un mensaje"
           onKeyDown={(e) => { if (e.key === 'Enter') send(); }}
         />
-        <button className="send" disabled={!canSend} onClick={send}>→</button>
+        <button className="send" disabled={!canSend} onClick={send}>ÔåÆ</button>
       </div>
 
       {showScheduler && (
         <div className="modal-overlay" onClick={() => setShowScheduler(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-title">Agendar reunión</div>
+            <div className="modal-title">Agendar reuni├│n</div>
             <label className="modal-label">Fecha y hora</label>
             <input
               className="modal-datetime"

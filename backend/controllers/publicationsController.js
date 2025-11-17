@@ -18,11 +18,50 @@ const tokenize = (text = '') => {
     .filter((token) => token.length > 2 && token.length < 40);
 };
 
-const buildSearchTokens = (title, content, tags = []) => {
+const offerPrefix = "teach:";
+const interestPrefix = "learn:";
+
+const decodeTags = (list = []) => {
+  const offer = [];
+  const interest = [];
+  (Array.isArray(list) ? list : []).forEach((value) => {
+    if (typeof value !== "string") return;
+    if (value.startsWith(interestPrefix)) {
+      const clean = value.substring(interestPrefix.length).trim();
+      if (clean) interest.push(clean);
+    } else if (value.startsWith(offerPrefix)) {
+      const clean = value.substring(offerPrefix.length).trim();
+      if (clean) offer.push(clean);
+    } else if (value.trim()) {
+      offer.push(value.trim());
+    }
+  });
+  return { offer, interest };
+};
+
+const encodeTags = (offerList = [], interestList = []) => {
+  const encoded = new Set();
+  (Array.isArray(offerList) ? offerList : []).forEach((tag) => {
+    if (typeof tag === "string" && tag.trim()) {
+      encoded.add(`${offerPrefix}${tag.trim()}`);
+    }
+  });
+  (Array.isArray(interestList) ? interestList : []).forEach((tag) => {
+    if (typeof tag === "string" && tag.trim()) {
+      encoded.add(`${interestPrefix}${tag.trim()}`);
+    }
+  });
+  return Array.from(encoded);
+};
+
+const buildSearchTokens = (title, content, tags = [], interestTags = []) => {
   const set = new Set();
   tokenize(title).forEach((t) => set.add(t));
   tokenize(content).forEach((t) => set.add(t));
   (Array.isArray(tags) ? tags : [])
+    .flatMap((tag) => tokenize(tag))
+    .forEach((t) => set.add(t));
+  (Array.isArray(interestTags) ? interestTags : [])
     .flatMap((tag) => tokenize(tag))
     .forEach((t) => set.add(t));
   return Array.from(set);
@@ -35,7 +74,7 @@ const buildSearchTokens = (title, content, tags = []) => {
 const createPublication = async (req, res) => {
   try {
     const { uid } = req.user; // UID del usuario autenticado
-    const { title, content, imageUrl, tipo, titulo, descripcion, nivel, modalidad, ciudad, region, tags } = req.body;
+    const { title, content, imageUrl, tipo, titulo, descripcion, nivel, modalidad, ciudad, region, tags, interestTags, interests } = req.body;
 
     // Log del request
     console.log(`[CREATE PUBLICATION] Request from user ${uid}:`, {
@@ -63,13 +102,17 @@ const createPublication = async (req, res) => {
     // --- Fin de la Denormalización ---
 
     const tagList = Array.isArray(tags) ? tags : [];
-    const searchTokens = buildSearchTokens(finalTitle, finalContent, [
-      ...tagList,
-      nivel,
-      modalidad,
-      ciudad,
-      region,
-    ]);
+    const interestList = Array.isArray(interestTags)
+      ? interestTags
+      : Array.isArray(interests)
+      ? interests
+      : [];
+    const searchTokens = buildSearchTokens(
+      finalTitle,
+      finalContent,
+      [...tagList, nivel, modalidad, ciudad, region].filter(Boolean),
+      interestList
+    );
 
     const newPublication = {
       creatorId: uid,
@@ -95,6 +138,7 @@ const createPublication = async (req, res) => {
       ciudad: ciudad || null,
       region: region || null,
       tags: tagList,
+      interestTags: interestList,
       searchTokens,
       activo: true,
       ratingCount: 0,
@@ -146,6 +190,26 @@ const getAllPublications = async (_req, res) => {
 
     const publications = snapshot.docs.map(doc => {
       const data = doc.data();
+      const normalizedTags = Array.isArray(data.tags)
+        ? data.tags.filter((tag) => typeof tag === "string" && tag.trim())
+        : Array.isArray(data.etiquetas)
+        ? data.etiquetas.filter((tag) => typeof tag === "string" && tag.trim())
+        : [];
+      const normalizedInterestTags = Array.isArray(data.interestTags)
+        ? data.interestTags.filter((tag) => typeof tag === "string" && tag.trim())
+        : Array.isArray(data.interests)
+        ? data.interests.filter((tag) => typeof tag === "string" && tag.trim())
+        : Array.isArray(data.intereses)
+        ? data.intereses.filter((tag) => typeof tag === "string" && tag.trim())
+        : [];
+      const ratingCount = Number(data.ratingCount) || 0;
+      const ratingSum = Number(data.ratingSum) || 0;
+      const ratingAvg =
+        ratingCount > 0
+          ? ratingSum / ratingCount
+          : data.ratingCount
+          ? (data.ratingSum || 0) / data.ratingCount
+          : data.ratingAvg || data.rating || 0;
       console.log(`[GET PUBLICATIONS] Publication ${doc.id}:`, {
         title: data.title || data.titulo,
         creator: data.creatorInfo?.nombre,
@@ -155,7 +219,9 @@ const getAllPublications = async (_req, res) => {
       return {
         id: doc.id,
         ...data,
-        ratingAvg: data.ratingCount ? (data.ratingSum || 0) / data.ratingCount : 0,
+        tags: normalizedTags,
+        interestTags: normalizedInterestTags,
+        ratingAvg: ratingAvg || 0,
       };
     });
 

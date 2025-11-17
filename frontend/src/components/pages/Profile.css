@@ -1,8 +1,8 @@
 .profile-page {
   min-height: 100vh;
   padding: 60px 16px 140px;
-  background: radial-gradient(circle at top, rgba(58, 30, 109, 0.65), transparent 60%),
-    radial-gradient(circle at bottom, rgba(0, 193, 134, 0.55), transparent 55%),
+  background: radial-gradient(circle at top, rgba(58, 30, 109, 0.55), transparent 60%),
+    radial-gradient(circle at bottom, rgba(0, 193, 134, 0.45), transparent 55%),
     linear-gradient(140deg, #070913, #0d182d 55%, #034737);
   display: flex;
   justify-content: center;
@@ -10,8 +10,8 @@
 }
 
 .profile-card {
-  width: min(760px, 100%);
-  background: rgba(5, 8, 23, 0.85);
+  width: min(800px, 100%);
+  background: rgba(5, 8, 23, 0.9);
   border-radius: 28px;
   padding: 30px 28px;
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
@@ -26,17 +26,63 @@
   margin-bottom: 24px;
 }
 
+.profile-avatarBtn {
+  border: none;
+  background: none;
+  padding: 0;
+  border-radius: 32px;
+  position: relative;
+}
+
+.profile-avatarBtn.is-editable {
+  cursor: pointer;
+}
+
+.profile-avatarBtn:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
 .profile-avatar {
-  width: 110px;
-  height: 110px;
-  border-radius: 30px;
+  width: 120px;
+  height: 120px;
+  border-radius: 32px;
   object-fit: cover;
   box-shadow: 0 16px 30px rgba(0, 0, 0, 0.4);
+}
+
+.profile-avatar__hint {
+  position: absolute;
+  inset: 0;
+  border-radius: 32px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #f5f7ff;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.profile-avatarBtn.is-editable:hover .profile-avatar__hint {
+  opacity: 1;
 }
 
 .profile-name {
   margin: 0;
   font-size: clamp(26px, 5vw, 32px);
+}
+
+.profile-ratingRow {
+  margin: 6px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .profile-bio {
@@ -83,189 +129,250 @@
 }
 
 .profile-panel {
-    padding: 24px;
-    border-radius: 20px;
-    background: rgba(8, 11, 26, 0.9);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    min-height: 180px;
-    box-shadow: inset 0 15px 35px rgba(0, 0, 0, 0.3);
-    text-align: left;
+  padding: 24px;
+  border-radius: 20px;
+  background: rgba(8, 11, 26, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  min-height: 180px;
+  box-shadow: inset 0 15px 35px rgba(0, 0, 0, 0.25);
+  text-align: left;
 }
 
 .profile-posts__state {
-    margin: 0;
-    color: rgba(255, 255, 255, 0.75);
+  margin: 0;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .profile-posts__list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .profile-posts__item {
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    align-items: flex-start;
+  padding: 14px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
 }
 
 .profile-posts__info {
-    flex: 1;
+  flex: 1;
+}
+
+.profile-posts__row {
+  display: flex;
+  gap: 14px;
+}
+
+.profile-posts__thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  object-fit: cover;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.35);
 }
 
 .profile-posts__title {
-    font-weight: 700;
-    margin-bottom: 4px;
+  font-weight: 700;
+  margin-bottom: 4px;
 }
 
 .profile-posts__desc {
-    font-size: 14px;
-    color: rgba(255, 255, 255, 0.75);
-}
-
-.profile-posts__more {
-    border: none;
-    background: rgba(255, 255, 255, 0.08);
-    color: #f7f9ff;
-    border-radius: 12px;
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: 6px;
 }
 
 .profile-posts__ratingSummary {
-    display: inline-flex;
-    gap: 6px;
-    align-items: center;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
-    margin-top: 6px;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .profile-posts__actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .profile-posts__reviewsBtn {
-    border: none;
-    background: rgba(255, 255, 255, 0.1);
-    color: #f7f9ff;
-    border-radius: 14px;
-    padding: 6px 12px;
-    cursor: pointer;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #f7f9ff;
+  border-radius: 14px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.profile-posts__reviewsBtn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.profile-posts__menu {
+  position: relative;
+}
+
+.profile-posts__more {
+  border: none;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f7f9ff;
+  border-radius: 12px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-posts__more.is-open {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.profile-posts__menuList {
+  position: absolute;
+  right: 0;
+  top: 40px;
+  background: rgba(4, 7, 20, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  min-width: 180px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  z-index: 5;
+}
+
+.profile-posts__menuItem {
+  border: none;
+  background: none;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: left;
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s ease;
+}
+
+.profile-posts__menuItem:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.profile-posts__menuItem--danger {
+  color: #ff9d9d;
 }
 
 .reviews-modal {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 2000;
-    padding: 20px;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
 }
 
 .reviews-modal__card {
-    width: min(520px, 100%);
-    background: rgba(5, 8, 23, 0.95);
-    border-radius: 24px;
-    padding: 24px;
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
-    max-height: 80vh;
-    overflow-y: auto;
+  width: min(520px, 100%);
+  background: rgba(6, 9, 22, 0.95);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.45);
 }
 
 .reviews-modal__header {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
 .reviews-modal__close {
-    border: none;
-    background: rgba(255, 255, 255, 0.15);
-    color: #fff;
-    border-radius: 12px;
-    padding: 6px 10px;
-    cursor: pointer;
+  border: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  border-radius: 10px;
+  padding: 6px 12px;
+  cursor: pointer;
 }
 
 .reviews-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 0 18px;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .reviews-list__item {
-    padding: 10px 12px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .reviews-list__info {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: rgba(255, 255, 255, 0.8);
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
 }
 
 .reviews-list__rating {
-    display: inline-flex;
-    gap: 4px;
-    align-items: center;
-    margin-top: 6px;
-    font-weight: 600;
+  display: inline-flex;
+  gap: 4px;
+  align-items: center;
+  margin-top: 6px;
+  font-weight: 600;
 }
 
 .reviews-form {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.reviews-form textarea,
-.reviews-form select {
-    width: 100%;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.05);
-    color: #f7f9ff;
-    padding: 8px 12px;
+.reviews-form textarea {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
+  color: #f7f9ff;
+  padding: 8px 12px;
 }
 
 .star-rating {
-    display: inline-flex;
-    gap: 4px;
-    font-size: 24px;
+  display: inline-flex;
+  gap: 4px;
+  font-size: 24px;
 }
 
 .star-rating .star {
-    background: none;
-    border: none;
-    color: rgba(255, 255, 255, 0.35);
-    cursor: pointer;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
 }
 
-.star-rating .star.is-active {
-    color: #ffc857;
+.star-rating .starIcon {
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.2s ease;
+}
+
+.star-rating .star.is-active .starIcon {
+  color: #ffc857;
 }
 
 .profile-calendar__list {
@@ -324,6 +431,32 @@
   padding-top: 80px;
 }
 
+.star-display {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.star-display__item {
+  position: relative;
+  display: inline-flex;
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.star-display__item svg {
+  width: 1em;
+  height: 1em;
+}
+
+.star-display__item::after {
+  content: "★";
+  position: absolute;
+  inset: 0;
+  width: var(--fill);
+  color: #ffc857;
+  overflow: hidden;
+  pointer-events: none;
+}
+
 @media (max-width: 640px) {
   .profile-card {
     padding: 24px 20px;
@@ -341,6 +474,17 @@
 
   .profile-panel {
     padding: 18px;
+  }
+
+  .profile-posts__row {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .profile-posts__thumb {
+    width: 100%;
+    height: 180px;
   }
 
   .profile-calendar__item {

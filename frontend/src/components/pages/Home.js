@@ -18,6 +18,7 @@ export default function Home() {
   const [error, setError] = useState(null);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [expandedPostId, setExpandedPostId] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedQuery(query.trim()), 350);
@@ -72,6 +73,10 @@ export default function Home() {
   useEffect(() => {
     setPosts((rawPosts || []).map((post) => ({ ...post, liked: !!likedMap[post.id] })));
   }, [rawPosts, likedMap]);
+
+  useEffect(() => {
+    setExpandedPostId(null);
+  }, [posts]);
 
   const handleLike = async (post, nextLiked) => {
     if (!nextLiked || likedMap[post.id]) return;
@@ -132,6 +137,10 @@ export default function Home() {
         {posts.length > 0 && (
           <PostList
             posts={posts}
+            expandedId={expandedPostId}
+            onToggle={(post) =>
+              setExpandedPostId((prev) => (prev === post.id ? null : post.id))
+            }
             onLike={handleLike}
             onViewProfile={(post) => {
               const authorUid = post.authorUid || post.creatorId;

@@ -10,19 +10,19 @@ const OPCIONES = [
   "CIENCIAS",
   "FITNESS",
   "ARTES",
-  "MÚSICA",
+  "MUSICA",
   "IDIOMAS",
-  "FILOSOFÍA",
-  "COMPUTACIÓN",
-  "PROGRAMACIÓN",
+  "FILOSOFIA",
+  "COMPUTACION",
+  "PROGRAMACION",
   "ESCRITURA",
   "COCINA",
   "FINANZAS",
   "MODA",
-  "ROBÓTICA",
-  "QUÍMICA",
+  "ROBOTICA",
+  "QUIMICA",
   "HISTORIA",
-  "MATEMÁTICAS",
+  "MATEMATICAS",
   "LITERATURA",
 ];
 
@@ -80,4 +80,3 @@ export default function Etiqueta1() {
     </div>
   );
 }
-
