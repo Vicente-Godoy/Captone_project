@@ -4,6 +4,7 @@ Aplicación de intercambio de habilidades entre usuarios.
 
 ## Documentación 
 - https://github.com/Vicente-Godoy/Capstone_Doc.git
+- https://github.com/Vicente-Godoy/Capstone_mobile.git
 
 ## Stack Tecnológico
 - **Frontend**: React
